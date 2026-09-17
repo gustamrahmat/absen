@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absen QR</title>
+    <title>Absen</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
@@ -331,14 +331,14 @@
             <span class="corner corner-br"></span>
             <span class="dot"></span>
         </div>
-        <h2>Absensi</h2>
+        <h2>Absen QR + GPS</h2>
         <p class="desc">Aplikasi ini butuh izin Lokasi dan Kamera untuk berjalan. Tekan tombol di bawah untuk mulai.</p>
         <button onclick="mulaiSemuaProses()">Mulai Absen</button>
     </div>
 
     <!-- ==== TAHAP 1: SCAN QR ==== -->
     <div class="card" id="scanView" style="display:none;">
-        <h2>Absen QR</h2>
+        <h2>Absensi</h2>
         <p class="desc">Arahkan kamera ke QR Code di titik absen. Lokasi Anda akan otomatis divalidasi saat QR terbaca.</p>
 
         <div id="scanNotif"></div>
@@ -368,7 +368,7 @@
     <!-- ==== TAHAP 2: DATA KARYAWAN ==== -->
     <div class="card" id="dataKaryawanView" style="display:none;">
         <h2>Data Karyawan</h2>
-        <p class="desc">Lokasi terverifikasi. Lengkapi data berikut sebelum lanjut.</p>
+        <p class="desc">Lokasi terverifikasi. Lengkapi data berikut sebelum lanjut ke selfie.</p>
 
         <input type="text" id="inputNamaKaryawan" placeholder="Nama lengkap" />
         <input type="text" id="inputNoKaryawan" placeholder="Nomor karyawan" />
@@ -403,6 +403,7 @@
         <img id="fotoHasil" />
         <div id="dataKaryawanHasil"></div>
         <div id="infoHasil" style="margin-top:10px;font-size:13px;color:#4b5563;"></div>
+        <div id="statusKirimServer" style="margin-top:10px;font-size:12.5px;color:#5B6472;font-family:'IBM Plex Mono',monospace;"></div>
         <button class="secondary" onclick="unduhFotoHasil()">Unduh Foto</button>
     </div>
 
@@ -609,13 +610,13 @@
             try {
                 dataLokasi = JSON.parse(dataMentah);
             } catch (e) {
-                tampilkanNotifScan('gagal', 'Gagal - QR tidak dikenali. Pastikan ini QR Absen asli.');
+                tampilkanNotifScan('gagal', 'QR tidak dikenali. Pastikan ini QR Absen resmi.');
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; }, 2200);
                 return;
             }
 
             if (typeof dataLokasi.lat !== 'number' || typeof dataLokasi.lng !== 'number' || typeof dataLokasi.radius !== 'number') {
-                tampilkanNotifScan('gagal', 'Gagal - QR tidak valid untuk absen.');
+                tampilkanNotifScan('gagal', 'QR tidak valid untuk absen.');
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; }, 2200);
                 return;
             }
@@ -652,14 +653,14 @@
             const jarak = hitungJarak(dataLokasi.lat, dataLokasi.lng, userLat, userLng);
 
             if (!akurasiCukup) {
-                tampilkanNotifScan('gagal', `Gagal - Akurasi GPS kurang baik (${akurasiSekarang.toFixed(1)}m). Coba lagi di tempat lebih terbuka.`);
+                tampilkanNotifScan('gagal', `Akurasi GPS kurang baik (${akurasiSekarang.toFixed(1)}m). Coba lagi di tempat lebih terbuka.`);
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2600);
                 return;
             }
 
             if (jarak > dataLokasi.radius) {
                 // Ini kasus utama antisipasi QR difoto & dikirim ke lokasi lain
-                tampilkanNotifScan('gagal', `Gagal - Anda di luar zona absen (jarak ${formatJarakCm(jarak)}).`);
+                tampilkanNotifScan('gagal', `Gagal - Anda di luar zona absen (jarak ${formatJarakCm(jarak)}), meski QR valid.`);
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2600);
                 return;
             }
@@ -811,6 +812,45 @@
                 lokasi: targetAktif.nama,
                 sudahAbsen: true,
                 waktuAbsen: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Uji coba: kirim juga ke server lokal (laptop) via tunnel, supaya foto+data tersimpan ke drive E:
+            kirimKeServerLokal({
+                namaKaryawan: namaKaryawan,
+                noKaryawan: noKaryawan,
+                lokasi: targetAktif.nama,
+                waktu: waktu,
+                jarak: formatJarakCm(jarakSaatIni),
+                lat: userLat,
+                lng: userLng,
+                fotoBase64: fotoDataUrl
+            });
+        }
+
+        // === UJI COBA: kirim foto + metadata ke server lokal (laptop) lewat tunnel HTTPS ===
+        // GANTI nilai ini tiap kali tunnel di laptop Anda di-restart (URL tunnel gratis berubah tiap dijalankan ulang).
+        const URL_SERVER_LOKAL = 'https://path-tradition-requests-exposure.trycloudflare.com/';
+
+        function kirimKeServerLokal(payload) {
+            const statusDiv2 = document.getElementById('statusKirimServer');
+            statusDiv2.textContent = 'Mengirim ke server lokal...';
+
+            fetch(URL_SERVER_LOKAL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    statusDiv2.innerHTML = "<span class='success'>Tersimpan ke server lokal.</span>";
+                } else {
+                    statusDiv2.innerHTML = `<span class='error'>Gagal: ${data.pesan || 'tidak diketahui'}</span>`;
+                }
+            })
+            .catch(err => {
+                console.warn('Gagal kirim ke server lokal:', err.message);
+                statusDiv2.innerHTML = "<span class='error'>Gagal terhubung ke server lokal (cek tunnel masih aktif?).</span>";
             });
         }
 
