@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Absen</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
     <!-- jsQR: decode QR code dari frame video, murni client-side -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -331,14 +328,14 @@
             <span class="corner corner-br"></span>
             <span class="dot"></span>
         </div>
-        <h2>Absen QR + GPS</h2>
+        <h2>Absensi</h2>
         <p class="desc">Aplikasi ini butuh izin Lokasi dan Kamera untuk berjalan. Tekan tombol di bawah untuk mulai.</p>
         <button onclick="mulaiSemuaProses()">Mulai Absen</button>
     </div>
 
     <!-- ==== TAHAP 1: SCAN QR ==== -->
     <div class="card" id="scanView" style="display:none;">
-        <h2>Absensi</h2>
+        <h2>Scan QR</h2>
         <p class="desc">Arahkan kamera ke QR Code di titik absen. Lokasi Anda akan otomatis divalidasi saat QR terbaca.</p>
 
         <div id="scanNotif"></div>
@@ -362,13 +359,13 @@
         </div>
 
         <div id="status">Status: Belum absen</div>
-        <div id="koneksiStatus">Menghubungkan ke server...</div>
+        <div id="koneksiStatus">Memeriksa server lokal...</div>
     </div>
 
     <!-- ==== TAHAP 2: DATA KARYAWAN ==== -->
     <div class="card" id="dataKaryawanView" style="display:none;">
         <h2>Data Karyawan</h2>
-        <p class="desc">Lokasi terverifikasi. Lengkapi data berikut sebelum lanjut ke selfie.</p>
+        <p class="desc">Lokasi terverifikasi. Lengkapi data berikut sebelum lanjut.</p>
 
         <input type="text" id="inputNamaKaryawan" placeholder="Nama lengkap" />
         <input type="text" id="inputNoKaryawan" placeholder="Nomor karyawan" />
@@ -408,63 +405,46 @@
     </div>
 
 <script>
-        // === KONFIGURASI FIREBASE ===
-        const firebaseConfig = {
-            apiKey: "AIzaSyBoppmWcY4-JOeOiFqK84WVT-98KT5aG4A",
-            authDomain: "absen-gps-4e9d5.firebaseapp.com",
-            databaseURL: "https://absen-gps-4e9d5-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "absen-gps-4e9d5",
-            storageBucket: "absen-gps-4e9d5.firebasestorage.app",
-            messagingSenderId: "1077921700600",
-            appId: "1:1077921700600:web:744dfa81e9edc93463390d",
-            measurementId: "G-0H7PMK90HS"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // === UJI COBA: alamat server lokal (laptop) lewat tunnel HTTPS ===
+        // GANTI nilai ini tiap kali tunnel di laptop Anda di-restart (kalau masih pakai Quick Tunnel gratis).
+        const URL_SERVER_LOKAL_BASE = 'https://petroleum-needle-machine-starring.trycloudflare.com/';
+        const URL_SIMPAN_ABSEN = URL_SERVER_LOKAL_BASE + '/simpan-absen';
+        const URL_PING = URL_SERVER_LOKAL_BASE + '/ping';
 
         const koneksiStatusDiv = document.getElementById('koneksiStatus');
-        db.ref('.info/connected').on('value', function(snap) {
-            if (snap.val() === true) {
-                koneksiStatusDiv.textContent = 'Terhubung ke server';
-                koneksiStatusDiv.classList.remove('terputus');
-            } else {
-                koneksiStatusDiv.textContent = 'Terputus dari server (data tidak terkirim ke admin)';
-                koneksiStatusDiv.classList.add('terputus');
-            }
-        });
 
-        let employeeId = localStorage.getItem('absen_employee_id');
-        if (!employeeId) {
-            employeeId = 'emp_' + Math.random().toString(36).substring(2, 10);
-            localStorage.setItem('absen_employee_id', employeeId);
+        // Cek berkala apakah server lokal (laptop) bisa dijangkau lewat tunnel --
+        // ini menggantikan status ".info/connected" yang dulu dari Firebase.
+        function cekKoneksiServerLokal() {
+            const kontrol = new AbortController();
+            const batasWaktu = setTimeout(() => kontrol.abort(), 4000);
+
+            fetch(URL_PING, { signal: kontrol.signal })
+                .then(res => res.json())
+                .then(() => {
+                    clearTimeout(batasWaktu);
+                    koneksiStatusDiv.textContent = 'Terhubung ke server lokal';
+                    koneksiStatusDiv.classList.remove('terputus');
+                })
+                .catch(() => {
+                    clearTimeout(batasWaktu);
+                    koneksiStatusDiv.textContent = 'Terputus dari server lokal (foto tidak akan tersimpan ke drive)';
+                    koneksiStatusDiv.classList.add('terputus');
+                });
         }
-        let employeeRef = db.ref('employees/' + employeeId);
-        employeeRef.onDisconnect().update({
-            status: 'offline',
-            terakhirTerlihat: firebase.database.ServerValue.TIMESTAMP
-        });
+        cekKoneksiServerLokal();
+        setInterval(cekKoneksiServerLokal, 7000);
 
-        let waktuPushTerakhir = 0;
-        const JEDA_PUSH_MS = 2000;
-
-        function pushPosisiKeFirebase(lat, lng, akurasi, dataTambahan) {
-            const sekarang = Date.now();
-            if (sekarang - waktuPushTerakhir < JEDA_PUSH_MS) return;
-            waktuPushTerakhir = sekarang;
-
-            const payload = Object.assign({
-                lat: lat,
-                lng: lng,
-                akurasi: akurasi,
-                status: 'online',
-                terakhirTerlihat: firebase.database.ServerValue.TIMESTAMP
-            }, dataTambahan || {});
-            employeeRef.update(payload);
+        // ID unik per perangkat, disimpan di localStorage -- dikirim sebagai "deviceId" ke server lokal
+        let deviceId = localStorage.getItem('absen_device_id');
+        if (!deviceId) {
+            deviceId = 'dev_' + Math.random().toString(36).substring(2, 10);
+            localStorage.setItem('absen_device_id', deviceId);
         }
 
         const MAX_AKURASI = 5; // akurasi GPS maksimal (meter) yang diizinkan sebelum validasi lokasi dipercaya
-        const JENDELA_BACAAN_TERBAIK_MS = 10000;
-        const BATAS_TUNGGU_VALIDASI_MS = 6000; // maksimal menunggu akurasi membaik setelah QR terbaca
+        const JENDELA_BACAAN_TERBAIK_MS = 7000;
+        const BATAS_TUNGGU_VALIDASI_MS = 4000; // maksimal menunggu akurasi membaik setelah QR terbaca
 
         const statusDiv = document.getElementById('status');
         const liveJarakScanDiv = document.getElementById('liveJarakScan');
@@ -526,8 +506,6 @@
                         userLat = userLat + SMOOTHING_ALPHA * (rawLat - userLat);
                         userLng = userLng + SMOOTHING_ALPHA * (rawLng - userLng);
                     }
-
-                    pushPosisiKeFirebase(userLat, userLng, akurasiSekarang, { sudahAbsen: sudahAbsenHariIni });
                 },
                 function(error) {
                     console.warn('Geolocation error:', error.message);
@@ -535,8 +513,6 @@
                 { enableHighAccuracy: true, timeout: 3000, maximumAge: 700 }
             );
         }
-
-        let sudahAbsenHariIni = false;
 
         // === TAHAP 1: SCAN QR ===
         const videoScan = document.getElementById('videoScan');
@@ -597,7 +573,6 @@
         function tampilkanNotifScan(jenis, pesan) {
             scanNotif.className = jenis; // 'proses' | 'berhasil' | 'gagal'
             scanNotif.textContent = pesan;
-            // trigger animasi masuk
             requestAnimationFrame(() => scanNotif.classList.add('show'));
         }
 
@@ -610,13 +585,13 @@
             try {
                 dataLokasi = JSON.parse(dataMentah);
             } catch (e) {
-                tampilkanNotifScan('gagal', 'QR tidak dikenali. Pastikan ini QR Absen resmi.');
+                tampilkanNotifScan('gagal', 'Gagal - QR tidak dikenali. Pastikan ini QR Absen yang valid.');
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; }, 2200);
                 return;
             }
 
             if (typeof dataLokasi.lat !== 'number' || typeof dataLokasi.lng !== 'number' || typeof dataLokasi.radius !== 'number') {
-                tampilkanNotifScan('gagal', 'QR tidak valid untuk absen.');
+                tampilkanNotifScan('gagal', 'Gagal - QR tidak valid untuk absen.');
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; }, 2200);
                 return;
             }
@@ -624,8 +599,6 @@
             tampilkanNotifScan('proses', `QR "${dataLokasi.nama || 'Titik Absen'}" terbaca. Memastikan lokasi Anda...`);
             scanStatusDiv.textContent = 'Memvalidasi lokasi...';
 
-            // Beri jeda toleransi menunggu akurasi GPS membaik (maksimal beberapa detik),
-            // tapi TIDAK menunggu tanpa batas -- kalau tetap buruk, tetap diputuskan (ditolak) setelah batas waktu.
             const mulaiTungguTs = Date.now();
             const intervalCek = setInterval(() => {
                 if (userLat !== null) {
@@ -653,19 +626,17 @@
             const jarak = hitungJarak(dataLokasi.lat, dataLokasi.lng, userLat, userLng);
 
             if (!akurasiCukup) {
-                tampilkanNotifScan('gagal', `Akurasi GPS kurang baik (${akurasiSekarang.toFixed(1)}m). Coba lagi di tempat lebih terbuka.`);
+                tampilkanNotifScan('gagal', `Gagal - Akurasi GPS kurang baik (${akurasiSekarang.toFixed(1)}m). Coba lagi di tempat lebih terbuka.`);
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2600);
                 return;
             }
 
             if (jarak > dataLokasi.radius) {
-                // Ini kasus utama antisipasi QR difoto & dikirim ke lokasi lain
-                tampilkanNotifScan('gagal', `Gagal - Anda di luar zona absen (jarak ${formatJarakCm(jarak)}), meski QR valid.`);
+                tampilkanNotifScan('gagal', `Gagal - Anda di luar zona absen (jarak ${formatJarakCm(jarak)}).`);
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2600);
                 return;
             }
 
-            // === LOLOS VALIDASI ===
             targetAktif = { lat: dataLokasi.lat, lng: dataLokasi.lng, radius: dataLokasi.radius, nama: dataLokasi.nama || 'Titik Absen' };
             tampilkanNotifScan('berhasil', `QR "${targetAktif.nama}" berhasil divalidasi! Jarak Anda: ${formatJarakCm(jarak)}.`);
             statusDiv.innerHTML = `<span class='success'>Lokasi terverifikasi di ${targetAktif.nama}!</span>`;
@@ -803,18 +774,7 @@
             document.getElementById('infoHasil').innerHTML =
                 `Lokasi: ${targetAktif.nama}<br>Waktu: ${waktu}<br>Jarak dari titik absen: ${formatJarakCm(jarakSaatIni)}<br>Koordinat: ${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
 
-            // Catatan: foto HANYA disimpan lokal di browser (fotoDataUrl / tombol unduh),
-            // TIDAK diunggah ke Firebase. Yang dikirim ke Firebase cuma metadata (nama, no, waktu, lokasi).
-            sudahAbsenHariIni = true;
-            employeeRef.update({
-                nama: namaKaryawan,
-                noKaryawan: noKaryawan,
-                lokasi: targetAktif.nama,
-                sudahAbsen: true,
-                waktuAbsen: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            // Uji coba: kirim juga ke server lokal (laptop) via tunnel, supaya foto+data tersimpan ke drive E:
+            // Kirim foto + metadata ke server lokal (laptop) lewat tunnel, supaya tersimpan ke drive E:
             kirimKeServerLokal({
                 namaKaryawan: namaKaryawan,
                 noKaryawan: noKaryawan,
@@ -823,19 +783,16 @@
                 jarak: formatJarakCm(jarakSaatIni),
                 lat: userLat,
                 lng: userLng,
+                deviceId: deviceId,
                 fotoBase64: fotoDataUrl
             });
         }
-
-        // === UJI COBA: kirim foto + metadata ke server lokal (laptop) lewat tunnel HTTPS ===
-        // GANTI nilai ini tiap kali tunnel di laptop Anda di-restart (URL tunnel gratis berubah tiap dijalankan ulang).
-        const URL_SERVER_LOKAL = 'https://petroleum-needle-machine-starring.trycloudflare.com/simpan-absen';
 
         function kirimKeServerLokal(payload) {
             const statusDiv2 = document.getElementById('statusKirimServer');
             statusDiv2.textContent = 'Mengirim ke server lokal...';
 
-            fetch(URL_SERVER_LOKAL, {
+            fetch(URL_SIMPAN_ABSEN, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -864,8 +821,6 @@
         }
 
         // === MULAI SEMUA PROSES: DIPICU TOMBOL, IZIN DIMINTA BERURUTAN ===
-        // Lokasi diminta dan ditunggu SELESAI dulu (baik berhasil maupun gagal),
-        // baru kamera diminta setelahnya -- supaya dua dialog izin tidak tabrakan di HP.
         function mulaiSemuaProses() {
             document.getElementById('startView').style.display = 'none';
             document.getElementById('scanView').style.display = 'block';
