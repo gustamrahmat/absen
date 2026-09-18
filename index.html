@@ -443,8 +443,8 @@
         }
 
         const MAX_AKURASI = 5; // akurasi GPS maksimal (meter) yang diizinkan sebelum validasi lokasi dipercaya
-        const JENDELA_BACAAN_TERBAIK_MS = 7000;
-        const BATAS_TUNGGU_VALIDASI_MS = 4000; // maksimal menunggu akurasi membaik setelah QR terbaca
+        const JENDELA_BACAAN_TERBAIK_MS = 8000;
+        const BATAS_TUNGGU_VALIDASI_MS = 5000; // maksimal menunggu akurasi membaik setelah QR terbaca
 
         const statusDiv = document.getElementById('status');
         const liveJarakScanDiv = document.getElementById('liveJarakScan');
@@ -807,7 +807,7 @@
             })
             .catch(err => {
                 console.warn('Gagal kirim ke server lokal:', err.message);
-                statusDiv2.innerHTML = "<span class='error'>Gagal terhubung ke server lokal (cek tunnel masih aktif?).</span>";
+                statusDiv2.innerHTML = "<span class='error'>Gagal terhubung ke server lokal.</span>"; //(cek tunnel masih aktif?)
             });
         }
 
