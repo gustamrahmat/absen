@@ -272,7 +272,7 @@
             border-radius: var(--radius);
             margin-top: 12px;
             background: var(--viewfinder);
-            transform: scaleX(-1);
+            
         }
         #canvasFoto { display: none; }
         #previewFoto {
@@ -280,7 +280,7 @@
             border-radius: var(--radius);
             margin-top: 12px;
             display: none;
-            transform: scaleX(-1);
+            
         }
         #cameraStatus {
             margin-top: 10px;
@@ -295,7 +295,7 @@
             width: 100%;
             border-radius: var(--radius);
             margin-top: 12px;
-            transform: scaleX(-1);
+            
         }
         #dataKaryawanHasil {
             margin-top: 12px;
@@ -729,8 +729,8 @@
             canvasFoto.width = video.videoWidth;
             canvasFoto.height = video.videoHeight;
             const ctx = canvasFoto.getContext('2d');
-            ctx.translate(canvasFoto.width, 0);
-            ctx.scale(-1, 1);
+            //ctx.translate(canvasFoto.width, 0);
+            //ctx.scale(-1, 1);
             ctx.drawImage(video, 0, 0, canvasFoto.width, canvasFoto.height);
 
             fotoDataUrl = canvasFoto.toDataURL('image/jpeg', 0.9);
