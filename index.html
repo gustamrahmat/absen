@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absen</title>
+    <title>Absen Prakerin</title>
     <!-- jsQR: decode QR code dari frame video, murni client-side -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -333,10 +333,10 @@
         <button onclick="mulaiSemuaProses()">Mulai Absen</button>
     </div>
 
-    <!-- ==== TAHAP 1: SCAN QR ==== -->
+    <!-- ==== TAHAP 1: SCAN KARTU ID ==== -->
     <div class="card" id="scanView" style="display:none;">
         <h2>Scan QR</h2>
-        <p class="desc">Arahkan kamera ke QR Code di titik absen. Lokasi Anda akan otomatis divalidasi saat QR terbaca.</p>
+        <p class="desc">Hadapkan Kartu ID (QR) ke kamera untuk absen. Anda harus berada di salah satu zona absen yang terdaftar.</p>
 
         <div id="scanNotif"></div>
 
@@ -362,18 +362,7 @@
         <div id="koneksiStatus">Memeriksa server lokal...</div>
     </div>
 
-    <!-- ==== TAHAP 2: DATA KARYAWAN ==== -->
-    <div class="card" id="dataKaryawanView" style="display:none;">
-        <h2>Data Prakerin</h2>
-        <p class="desc">Lokasi terverifikasi. Lengkapi data berikut sebelum lanjut.</p>
-
-        <input type="text" id="inputNamaKaryawan" placeholder="Nama lengkap" />
-        <input type="text" id="inputNoKaryawan" placeholder="Nomor karyawan" />
-
-        <button onclick="lanjutKeSelfie()">Lanjut ke Selfie</button>
-    </div>
-
-    <!-- ==== TAHAP 3: SELFIE ==== -->
+    <!-- ==== TAHAP 2: SELFIE ==== -->
     <div class="card" id="cameraView" style="display:none;">
         <h2>Selfie Dokumentasi</h2>
         <p class="desc">Ambil foto selfie untuk menyelesaikan absen. Anda harus tetap berada di zona absen saat mengambil foto.</p>
@@ -407,9 +396,20 @@
 <script>
         // === UJI COBA: alamat server lokal (laptop) lewat tunnel HTTPS ===
         // GANTI nilai ini tiap kali tunnel di laptop Anda di-restart (kalau masih pakai Quick Tunnel gratis).
-        const URL_SERVER_LOKAL_BASE = 'https://terminology-enter-generally-minimize.trycloudflare.com';
+        const URL_SERVER_LOKAL_BASE = 'https://recovery-optimization-poems-hundred.trycloudflare.com';
         const URL_SIMPAN_ABSEN = URL_SERVER_LOKAL_BASE + '/simpan-absen';
         const URL_PING = URL_SERVER_LOKAL_BASE + '/ping';
+        const URL_VERIFIKASI_UUID = URL_SERVER_LOKAL_BASE + '/verifikasi-uuid';
+
+        // === DAFTAR SEMUA TITIK POS ABSEN YANG SAH ===
+        // Anak magang boleh absen di pos MANA PUN dari daftar ini (tidak harus selalu pos yang sama).
+        // GANTI koordinat & radius sesuai lokasi asli tiap pos.
+        const DAFTAR_POS = [
+            { nama: 'Pos Security 1', lat: -7.5051801, lng: 110.2253764, radius: 5 },
+            { nama: 'Pos Security 2', lat: -7.5049000, lng: 110.2256000, radius: 5 },
+            { nama: 'Pos Security 3', lat: -7.5053500, lng: 110.2251000, radius: 5 },
+            { nama: 'Pos Security 4', lat: -7.5047200, lng: 110.2258500, radius: 5 }
+        ];
 
         const koneksiStatusDiv = document.getElementById('koneksiStatus');
 
@@ -468,6 +468,20 @@
 
         function formatJarakCm(jarakMeter) {
             return `${(jarakMeter * 100).toFixed(0)} cm`;
+        }
+
+        // Cari pos TERDEKAT dari 4 titik yang terdaftar (dipakai untuk tampilan live & validasi).
+        // Mengembalikan { pos, jarak } dari yang paling dekat, atau null kalau posisi belum diketahui.
+        function cariPosTerdekat() {
+            if (userLat === null || DAFTAR_POS.length === 0) return null;
+            let terdekat = null;
+            for (const pos of DAFTAR_POS) {
+                const jarak = hitungJarak(pos.lat, pos.lng, userLat, userLng);
+                if (!terdekat || jarak < terdekat.jarak) {
+                    terdekat = { pos: pos, jarak: jarak };
+                }
+            }
+            return terdekat;
         }
 
         const SMOOTHING_ALPHA = 0.4;
@@ -535,7 +549,7 @@
                 .then(function(stream) {
                     streamScan = stream;
                     videoScan.srcObject = stream;
-                    scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...';
+                    scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...';
                     requestAnimationFrame(scanFrame);
                 })
                 .catch(function(err) {
@@ -581,29 +595,24 @@
         }
 
         function prosesHasilScanQR(dataMentah) {
-            let dataLokasi;
-            try {
-                dataLokasi = JSON.parse(dataMentah);
-            } catch (e) {
-                tampilkanNotifScan('gagal', 'Gagal - QR tidak dikenali. Pastikan ini QR Absen yang valid.');
+            const uuid = String(dataMentah || '').trim();
+
+            if (!uuid) {
+                tampilkanNotifScan('gagal', 'Kartu ID tidak terbaca dengan benar.');
                 setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; }, 2200);
                 return;
             }
 
-            if (typeof dataLokasi.lat !== 'number' || typeof dataLokasi.lng !== 'number' || typeof dataLokasi.radius !== 'number') {
-                tampilkanNotifScan('gagal', 'Gagal - QR tidak valid untuk absen.');
-                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; }, 2200);
-                return;
-            }
+            tampilkanNotifScan('proses', 'Kartu ID terbaca. Memastikan identitas & lokasi Anda...');
+            scanStatusDiv.textContent = 'Memvalidasi...';
 
-            tampilkanNotifScan('proses', `QR "${dataLokasi.nama || 'Titik Absen'}" terbaca. Memastikan lokasi Anda...`);
-            scanStatusDiv.textContent = 'Memvalidasi lokasi...';
-
+            // Beri jeda toleransi menunggu akurasi GPS membaik (maksimal beberapa detik),
+            // sambil terus update tampilan jarak ke pos terdekat.
             const mulaiTungguTs = Date.now();
             const intervalCek = setInterval(() => {
-                if (userLat !== null) {
-                    const jarakSementara = hitungJarak(dataLokasi.lat, dataLokasi.lng, userLat, userLng);
-                    liveJarakScanDiv.innerHTML = `Jarak ke titik absen: <b>${formatJarakCm(jarakSementara)}</b>`;
+                const terdekat = cariPosTerdekat();
+                if (terdekat) {
+                    liveJarakScanDiv.innerHTML = `Jarak ke ${terdekat.pos.nama}: <b>${formatJarakCm(terdekat.jarak)}</b>`;
                 }
 
                 const akurasiCukup = userLat !== null && akurasiSekarang !== null && akurasiSekarang <= MAX_AKURASI;
@@ -611,66 +620,74 @@
 
                 if (akurasiCukup || sudahLama) {
                     clearInterval(intervalCek);
-                    finalisasiValidasiQR(dataLokasi, akurasiCukup);
+                    finalisasiValidasiKartu(uuid, akurasiCukup);
                 }
             }, 400);
         }
 
-        function finalisasiValidasiQR(dataLokasi, akurasiCukup) {
+        function finalisasiValidasiKartu(uuid, akurasiCukup) {
             if (userLat === null) {
-                tampilkanNotifScan('gagal', 'Gagal - Lokasi GPS tidak ditemukan. Coba lagi.');
-                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2200);
+                tampilkanNotifScan('gagal', 'Lokasi GPS tidak ditemukan. Coba lagi.');
+                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...'; }, 2200);
                 return;
             }
-
-            const jarak = hitungJarak(dataLokasi.lat, dataLokasi.lng, userLat, userLng);
 
             if (!akurasiCukup) {
-                tampilkanNotifScan('gagal', `Gagal - Akurasi GPS kurang baik (${akurasiSekarang.toFixed(1)}m). Coba lagi di tempat lebih terbuka.`);
-                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2600);
+                tampilkanNotifScan('gagal', `Akurasi GPS kurang baik (${akurasiSekarang.toFixed(1)}m). Coba lagi di tempat lebih terbuka.`);
+                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...'; }, 2600);
                 return;
             }
 
-            if (jarak > dataLokasi.radius) {
-                tampilkanNotifScan('gagal', `Gagal - Anda di luar zona absen (jarak ${formatJarakCm(jarak)}).`);
-                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...'; }, 2600);
+            // Cek apakah posisi ada di dalam salah satu dari 4 pos yang terdaftar
+            const terdekat = cariPosTerdekat();
+            if (!terdekat || terdekat.jarak > terdekat.pos.radius) {
+                tampilkanNotifScan('gagal', 'Anda tidak berada di salah satu zona absen yang terdaftar.');
+                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...'; }, 2600);
                 return;
             }
 
-            targetAktif = { lat: dataLokasi.lat, lng: dataLokasi.lng, radius: dataLokasi.radius, nama: dataLokasi.nama || 'Titik Absen' };
-            tampilkanNotifScan('berhasil', `QR "${targetAktif.nama}" berhasil divalidasi! Jarak Anda: ${formatJarakCm(jarak)}.`);
-            statusDiv.innerHTML = `<span class='success'>Lokasi terverifikasi di ${targetAktif.nama}!</span>`;
-            scanningAktif = false;
+            // Lokasi lolos -> baru verifikasi UUID kartu ke server lokal
+            fetch(URL_VERIFIKASI_UUID, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uuid: uuid })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.valid) {
+                    namaKaryawan = data.nama;
+                    noKaryawan = data.nomorInduk;
+                    divisiKaryawan = data.divisi;
+                    targetAktif = { lat: terdekat.pos.lat, lng: terdekat.pos.lng, radius: terdekat.pos.radius, nama: terdekat.pos.nama };
 
-            setTimeout(() => {
-                hentikanStreamScan();
-                document.getElementById('scanView').style.display = 'none';
-                document.getElementById('dataKaryawanView').style.display = 'block';
-            }, 1600);
+                    tampilkanNotifScan('berhasil', `Absen berhasil, ${data.nama}! Lokasi: ${terdekat.pos.nama}.`);
+                    statusDiv.innerHTML = `<span class='success'>Identitas & lokasi terverifikasi di ${terdekat.pos.nama}!</span>`;
+                    scanningAktif = false;
+
+                    setTimeout(() => {
+                        hentikanStreamScan();
+                        document.getElementById('scanView').style.display = 'none';
+                        document.getElementById('cameraView').style.display = 'block';
+                        bukaKamera();
+                    }, 1600);
+                } else {
+                    tampilkanNotifScan('gagal', data.pesan || 'Kartu ID tidak dikenali.');
+                    setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...'; }, 2600);
+                }
+            })
+            .catch(err => {
+                console.warn('Gagal verifikasi UUID:', err.message);
+                tampilkanNotifScan('gagal', 'Tidak bisa menghubungi server lokal untuk verifikasi.');
+                setTimeout(() => { sembunyikanNotifScan(); sedangMemprosesQR = false; scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...'; }, 2600);
+            });
         }
 
-        // === TAHAP 2: DATA KARYAWAN ===
+        // Identitas anak magang -- otomatis terisi dari hasil verifikasi UUID kartu ID (bukan lagi form manual)
         let namaKaryawan = '';
         let noKaryawan = '';
+        let divisiKaryawan = '';
 
-        function lanjutKeSelfie() {
-            const nama = document.getElementById('inputNamaKaryawan').value.trim();
-            const no = document.getElementById('inputNoKaryawan').value.trim();
-
-            if (!nama || !no) {
-                alert('Nama dan Nomor Karyawan wajib diisi.');
-                return;
-            }
-
-            namaKaryawan = nama;
-            noKaryawan = no;
-
-            document.getElementById('dataKaryawanView').style.display = 'none';
-            document.getElementById('cameraView').style.display = 'block';
-            bukaKamera();
-        }
-
-        // === TAHAP 3: SELFIE ===
+        // === TAHAP 2: SELFIE ===
         const video = document.getElementById('video');
         const canvasFoto = document.getElementById('canvasFoto');
         const previewFoto = document.getElementById('previewFoto');
@@ -709,10 +726,12 @@
         function batalkanSelfieKeScan() {
             tutupStreamKamera();
             document.getElementById('cameraView').style.display = 'none';
-            document.getElementById('dataKaryawanView').style.display = 'none';
             document.getElementById('scanView').style.display = 'block';
             statusDiv.innerHTML = 'Status: Belum absen';
-            scanStatusDiv.textContent = 'Arahkan kamera ke QR Code...';
+            scanStatusDiv.textContent = 'Arahkan Kartu ID ke kamera...';
+            namaKaryawan = '';
+            noKaryawan = '';
+            divisiKaryawan = '';
             targetAktif = null;
             mulaiScanQR();
         }
@@ -729,8 +748,6 @@
             canvasFoto.width = video.videoWidth;
             canvasFoto.height = video.videoHeight;
             const ctx = canvasFoto.getContext('2d');
-            //ctx.translate(canvasFoto.width, 0);
-            //ctx.scale(-1, 1);
             ctx.drawImage(video, 0, 0, canvasFoto.width, canvasFoto.height);
 
             fotoDataUrl = canvasFoto.toDataURL('image/jpeg', 0.9);
@@ -768,7 +785,7 @@
 
             document.getElementById('fotoHasil').src = fotoDataUrl;
             document.getElementById('dataKaryawanHasil').innerHTML =
-                `Nama: <b>${namaKaryawan}</b><br>No. Karyawan: <b>${noKaryawan}</b>`;
+                `Nama: <b>${namaKaryawan}</b><br>NIM/NISN: <b>${noKaryawan}</b><br>Divisi: <b>${divisiKaryawan}</b>`;
 
             const waktu = new Date().toLocaleString('id-ID');
             document.getElementById('infoHasil').innerHTML =
@@ -778,6 +795,7 @@
             kirimKeServerLokal({
                 namaKaryawan: namaKaryawan,
                 noKaryawan: noKaryawan,
+                divisi: divisiKaryawan,
                 lokasi: targetAktif.nama,
                 waktu: waktu,
                 jarak: formatJarakCm(jarakSaatIni),
@@ -807,7 +825,7 @@
             })
             .catch(err => {
                 console.warn('Gagal kirim ke server lokal:', err.message);
-                statusDiv2.innerHTML = "<span class='error'>Gagal terhubung ke server lokal.</span>"; //(cek tunnel masih aktif?)
+                statusDiv2.innerHTML = "<span class='error'>Gagal terhubung ke server lokal (cek tunnel masih aktif?).</span>";
             });
         }
 
