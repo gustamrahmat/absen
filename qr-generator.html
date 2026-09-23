@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator QR Absen</title>
+    <title>Pendaftaran Anak Magang & Kartu ID</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -19,7 +19,7 @@
             padding: 24px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 360px;
+            max-width: 380px;
             width: 90%;
             text-align: center;
         }
@@ -51,82 +51,118 @@
             margin-top: 16px;
             cursor: pointer;
         }
-        button.secondary {
-            background: #6b7280;
-        }
-        #qrOutput {
-            margin-top: 18px;
-            display: flex;
-            justify-content: center;
-        }
-        p.info {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-top: 10px;
-            text-align: left;
-        }
+        button.secondary { background: #6b7280; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        #qrOutput { margin-top: 18px; display: flex; justify-content: center; }
+        #hasilKartu { display: none; margin-top: 14px; text-align: left; font-size: 13px; background: #f3f4f6; padding: 10px; border-radius: 8px; }
+        p.info { font-size: 12px; color: #9ca3af; margin-top: 10px; text-align: left; }
+        #status { margin-top: 10px; font-size: 13px; }
+        .error { color: #dc2626; font-weight: bold; }
+        .success { color: #16a34a; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Generator QR Titik Absen</h2>
-        <p class="info">Buat QR sekali untuk tiap titik lokasi, lalu cetak dan tempel di lokasi tersebut.</p>
+        <h2>ID Prakerin Generator</h2>
+        <p class="info">Isi data sekali per anak magang. Sistem akan membuat UUID acak sebagai kartu ID mereka.</p>
 
-        <label>Nama Lokasi</label>
-        <input id="inNama" value="Pos Security" />
-        <!--KOORDINAT-->
-        <label>Latitude</label>
-        <input id="inLat" value="-7.5051801" /> 
+        <label>Nama Lengkap</label>
+        <input id="inNama" placeholder="Nama lengkap" />
 
-        <label>Longitude</label>
-        <input id="inLng" value="110.2253764" />
+        <label>Nomor Induk (NIM / NISN)</label>
+        <input id="inNomorInduk" placeholder="NIM untuk mahasiswa, NISN untuk siswa SMK" />
 
-        <label>Radius Zona Absen (meter)</label>
-        <input id="inRadius" type="number" value="5" />
+        <label>Departemen / Divisi</label>
+        <input id="inDivisi" placeholder="Contoh: IT, HRD, Marketing" />
 
-        <button onclick="buatQR()">Buat QR Code</button>
+        <label>Asal Sekolah / Universitas</label>
+        <input id="inAsalSekolah" placeholder="Opsional" />
 
+        <label>Jurusan / Program Studi</label>
+        <input id="inJurusan" placeholder="Opsional" />
+
+
+        <button id="btnDaftar" onclick="daftarkanAnakMagang()">Daftarkan & Buat Kartu ID</button>
+
+        <div id="status"></div>
         <div id="qrOutput"></div>
-
+        <div id="hasilKartu"></div>
         <button class="secondary" id="btnUnduh" style="display:none;" onclick="unduhQR()">Unduh Gambar QR (PNG)</button>
     </div>
 
     <script>
-        function buatQR() {
-            const data = {
-                lat: parseFloat(document.getElementById('inLat').value),
-                lng: parseFloat(document.getElementById('inLng').value),
-                radius: parseFloat(document.getElementById('inRadius').value),
-                nama: document.getElementById('inNama').value.trim()
-            };
+        // GANTI dengan alamat tunnel server lokal Anda yang sedang aktif (sama seperti di absen-karyawan.html)
+        const URL_SERVER_LOKAL_BASE = 'https://recovery-optimization-poems-hundred.trycloudflare.com';
+        const URL_DAFTAR = URL_SERVER_LOKAL_BASE + '/daftarkan-anak-magang';
 
-            if (isNaN(data.lat) || isNaN(data.lng) || isNaN(data.radius)) {
-                alert('Latitude, Longitude, dan Radius harus berupa angka.');
+        function daftarkanAnakMagang() {
+            const nama = document.getElementById('inNama').value.trim();
+            const nomorInduk = document.getElementById('inNomorInduk').value.trim();
+            const divisi = document.getElementById('inDivisi').value.trim();
+            const asalSekolah = document.getElementById('inAsalSekolah').value.trim();
+            const jurusan = document.getElementById('inJurusan').value.trim();
+            
+
+            const statusDiv = document.getElementById('status');
+            const btnDaftar = document.getElementById('btnDaftar');
+
+            if (!nama || !nomorInduk || !divisi) {
+                statusDiv.innerHTML = "<span class='error'>Nama, Nomor Induk, dan Divisi wajib diisi.</span>";
                 return;
             }
 
+            btnDaftar.disabled = true;
+            btnDaftar.textContent = 'Mendaftarkan...';
+            statusDiv.textContent = '';
+
+            fetch(URL_DAFTAR, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nama, nomorInduk, divisi, asalSekolah, jurusan })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnDaftar.disabled = false;
+                btnDaftar.textContent = 'Daftarkan & Buat Kartu ID';
+
+                if (data.ok) {
+                    statusDiv.innerHTML = "<span class='success'>Berhasil didaftarkan!</span>";
+                    buatQR(data.uuid);
+                    document.getElementById('hasilKartu').style.display = 'block';
+                    document.getElementById('hasilKartu').innerHTML =
+                        `Nama: <b>${nama}</b><br>Nomor Induk: <b>${nomorInduk}</b><br>Divisi: <b>${divisi}</b><br>UUID: <b>${data.uuid}</b>`;
+                } else {
+                    statusDiv.innerHTML = `<span class='error'>Gagal: ${data.pesan || 'tidak diketahui'}</span>`;
+                }
+            })
+            .catch(err => {
+                btnDaftar.disabled = false;
+                btnDaftar.textContent = 'Daftarkan & Buat Kartu ID';
+                statusDiv.innerHTML = "<span class='error'>Tidak bisa terhubung ke server lokal. Cek tunnel masih aktif?</span>";
+            });
+        }
+
+        function buatQR(uuid) {
             document.getElementById('qrOutput').innerHTML = '';
+            // QR HANYA berisi UUID polos -- bukan JSON, bukan data pribadi apa pun
             new QRCode(document.getElementById('qrOutput'), {
-                text: JSON.stringify(data),
-                width: 260,
-                height: 260,
+                text: uuid,
+                width: 240,
+                height: 240,
                 correctLevel: QRCode.CorrectLevel.M
             });
-
             document.getElementById('btnUnduh').style.display = 'block';
         }
 
         function unduhQR() {
             const el = document.querySelector('#qrOutput img') || document.querySelector('#qrOutput canvas');
             if (!el) return;
+            const namaFile = document.getElementById('inNomorInduk').value.trim() || 'kartu-id';
             const link = document.createElement('a');
-            link.download = 'qr-absen.png';
+            link.download = `kartu-id-${namaFile}.png`;
             link.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
             link.click();
         }
-
-        // Buat contoh QR otomatis saat halaman dibuka
-        buatQR();
     </script>
 </body>
 </html>
