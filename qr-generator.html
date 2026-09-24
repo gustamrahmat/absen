@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Anak Magang & Kartu ID</title>
+    <title>ID QR Card Generator - Prakerin</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -19,7 +19,7 @@
             padding: 24px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 380px;
+            max-width: 400px;
             width: 90%;
             text-align: center;
         }
@@ -53,9 +53,24 @@
         }
         button.secondary { background: #6b7280; }
         button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        /* ==== Tab pilih mode ==== */
+        .tabs { display: flex; gap: 6px; margin-top: 4px; }
+        .tab-btn {
+            flex: 1;
+            margin-top: 0;
+            background: #e5e7eb;
+            color: #374151;
+            font-size: 13.5px;
+            padding: 10px 6px;
+        }
+        .tab-btn.aktif { background: #2563eb; color: white; }
+        .panel { display: none; }
+        .panel.aktif { display: block; }
+
         #qrOutput { margin-top: 18px; display: flex; justify-content: center; }
-        #hasilKartu { display: none; margin-top: 14px; text-align: left; font-size: 13px; background: #f3f4f6; padding: 10px; border-radius: 8px; }
-        p.info { font-size: 12px; color: #9ca3af; margin-top: 10px; text-align: left; }
+        #hasilKartu { display: none; margin-top: 14px; text-align: left; font-size: 13px; background: #f3f4f6; padding: 10px; border-radius: 8px; word-break: break-all; }
+        p.info { font-size: 12px; color: #9ca3af; margin-top: 10px; text-align: left; line-height: 1.5; }
         #status { margin-top: 10px; font-size: 13px; }
         .error { color: #dc2626; font-weight: bold; }
         .success { color: #16a34a; font-weight: bold; }
@@ -63,26 +78,44 @@
 </head>
 <body>
     <div class="card">
-        <h2>ID Prakerin Generator</h2>
-        <p class="info">Isi data sekali per anak magang. Sistem akan membuat UUID acak sebagai kartu ID mereka.</p>
+        <h2>ID Card Generator - Prakerin</h2>
+        <p class="info">Isi data sekali per anak magang. Sistem akan membuat UUID acak sebagai kartu ID mereka. Pilih cara sesuai kondisi datanya.</p>
 
-        <label>Nama Lengkap</label>
-        <input id="inNama" placeholder="Nama lengkap" />
+        <div class="tabs">
+            <button class="tab-btn aktif" id="tabBaru" onclick="pindahTab('baru')">Daftar Baru</button>
+            <button class="tab-btn" id="tabCepat" onclick="pindahTab('cepat')">Daftar Instan</button>
+        </div>
 
-        <label>Nomor Induk (NIM / NISN)</label>
-        <input id="inNomorInduk" placeholder="NIM untuk mahasiswa, NISN untuk siswa SMK" />
+        <!-- ==== PANEL 1: DAFTAR BARU (FORM LENGKAP) ==== -->
+        <div class="panel aktif" id="panelBaru">
+            <label>Nama Lengkap</label>
+            <input id="inNama" placeholder="Nama lengkap" />
 
-        <label>Departemen / Divisi</label>
-        <input id="inDivisi" placeholder="Contoh: IT, HRD, Marketing" />
+            <label>Nomor Induk (NIM / NISN)</label>
+            <input id="inNomorInduk" placeholder="NIM untuk mahasiswa, NISN untuk siswa SMK" />
 
-        <label>Asal Sekolah / Universitas</label>
-        <input id="inAsalSekolah" placeholder="Opsional" />
+            <label>Departemen / Divisi</label>
+            <input id="inDivisi" placeholder="Contoh: IT, HRD, Marketing" />
 
-        <label>Jurusan / Program Studi</label>
-        <input id="inJurusan" placeholder="Opsional" />
+            <label>Asal Sekolah / Universitas</label>
+            <input id="inAsalSekolah" placeholder="Opsional" />
 
+            <label>Jurusan / Program Studi</label>
+            <input id="inJurusan" placeholder="Opsional" />
 
-        <button id="btnDaftar" onclick="daftarkanAnakMagang()">Daftarkan & Buat Kartu ID</button>
+            <button id="btnDaftar" onclick="daftarkanAnakMagang()">Daftarkan & Buat Kartu ID</button>
+        </div>
+
+        <!-- ==== PANEL 2: CEPAT (CARI DARI DATA YANG SUDAH ADA) ==== -->
+        <div class="panel" id="panelCepat">
+            <p class="info">
+                Cukup masukkan Nomor Induk (NIM/NISN), dan sistem akan membuat UUID acak sebagai kartu ID mereka.
+            </p>
+            <label>NIM / NISN</label>
+            <input id="inNomorIndukCepat" placeholder="Sesuai yang ada di data." />
+
+            <button id="btnCari" onclick="buatKartuIdCepat()">Buat Kartu ID</button>
+        </div>
 
         <div id="status"></div>
         <div id="qrOutput"></div>
@@ -91,17 +124,46 @@
     </div>
 
     <script>
-        // GANTI dengan alamat tunnel server lokal Anda yang sedang aktif (sama seperti di absen-karyawan.html)
-        const URL_SERVER_LOKAL_BASE = 'https://recovery-optimization-poems-hundred.trycloudflare.com';
+        // GANTI dengan alamat tunnel server lokal Anda yang sedang aktif (sama seperti di index.html).
+        // Kalau masih pakai Cloudflare Quick Tunnel gratis, URL ini berubah SETIAP restart tunnel --
+        // dan harus disamakan juga dengan URL_SERVER_LOKAL_BASE di index.html. Kalau sering lupa,
+        // pertimbangkan pakai Named Tunnel Cloudflare (URL tetap, tidak berubah tiap restart).
+        const URL_SERVER_LOKAL_BASE = 'https://homeland-wrestling-buf-and.trycloudflare.com';
         const URL_DAFTAR = URL_SERVER_LOKAL_BASE + '/daftarkan-anak-magang';
+        const URL_BUAT_KARTU = URL_SERVER_LOKAL_BASE + '/buat-kartu-id';
 
+        // Kalau server.js diisi API_KEY, isi juga nilai yang sama di sini. Kalau server.js
+        // API_KEY-nya dikosongkan, baris ini tidak berpengaruh apa-apa.
+        const API_KEY = '';
+
+        function headerFetch() {
+            const h = { 'Content-Type': 'application/json' };
+            if (API_KEY) h['x-api-key'] = API_KEY;
+            return h;
+        }
+
+        function pindahTab(mode) {
+            document.getElementById('tabBaru').classList.toggle('aktif', mode === 'baru');
+            document.getElementById('tabCepat').classList.toggle('aktif', mode === 'cepat');
+            document.getElementById('panelBaru').classList.toggle('aktif', mode === 'baru');
+            document.getElementById('panelCepat').classList.toggle('aktif', mode === 'cepat');
+            resetHasil();
+        }
+
+        function resetHasil() {
+            document.getElementById('status').textContent = '';
+            document.getElementById('qrOutput').innerHTML = '';
+            document.getElementById('hasilKartu').style.display = 'none';
+            document.getElementById('btnUnduh').style.display = 'none';
+        }
+
+        // === MODE 1: DAFTAR BARU ===
         function daftarkanAnakMagang() {
             const nama = document.getElementById('inNama').value.trim();
             const nomorInduk = document.getElementById('inNomorInduk').value.trim();
             const divisi = document.getElementById('inDivisi').value.trim();
             const asalSekolah = document.getElementById('inAsalSekolah').value.trim();
             const jurusan = document.getElementById('inJurusan').value.trim();
-            
 
             const statusDiv = document.getElementById('status');
             const btnDaftar = document.getElementById('btnDaftar');
@@ -117,7 +179,7 @@
 
             fetch(URL_DAFTAR, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headerFetch(),
                 body: JSON.stringify({ nama, nomorInduk, divisi, asalSekolah, jurusan })
             })
             .then(res => res.json())
@@ -126,8 +188,8 @@
                 btnDaftar.textContent = 'Daftarkan & Buat Kartu ID';
 
                 if (data.ok) {
-                    statusDiv.innerHTML = "<span class='success'>Berhasil didaftarkan!</span>";
-                    buatQR(data.uuid);
+                    statusDiv.innerHTML = `<span class='success'>${data.pesan || 'Berhasil didaftarkan!'}</span>`;
+                    buatQR(data.uuid, nomorInduk);
                     document.getElementById('hasilKartu').style.display = 'block';
                     document.getElementById('hasilKartu').innerHTML =
                         `Nama: <b>${nama}</b><br>Nomor Induk: <b>${nomorInduk}</b><br>Divisi: <b>${divisi}</b><br>UUID: <b>${data.uuid}</b>`;
@@ -142,7 +204,49 @@
             });
         }
 
-        function buatQR(uuid) {
+        // === MODE 2: CEPAT (CARI DARI DATA YANG SUDAH ADA) ===
+        function buatKartuIdCepat() {
+            const nomorInduk = document.getElementById('inNomorIndukCepat').value.trim();
+            const statusDiv = document.getElementById('status');
+            const btnCari = document.getElementById('btnCari');
+
+            if (!nomorInduk) {
+                statusDiv.innerHTML = "<span class='error'>Isi dulu NIM/NISN-nya.</span>";
+                return;
+            }
+
+            btnCari.disabled = true;
+            btnCari.textContent = 'Mencari...';
+            resetHasil();
+
+            fetch(URL_BUAT_KARTU, {
+                method: 'POST',
+                headers: headerFetch(),
+                body: JSON.stringify({ nomorInduk })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnCari.disabled = false;
+                btnCari.textContent = 'Cari & Buat Kartu ID';
+
+                if (data.ok) {
+                    statusDiv.innerHTML = "<span class='success'>Ditemukan!</span>";
+                    buatQR(data.uuid, data.nomorInduk);
+                    document.getElementById('hasilKartu').style.display = 'block';
+                    document.getElementById('hasilKartu').innerHTML =
+                        `Nama: <b>${data.nama}</b><br>Nomor Induk: <b>${data.nomorInduk}</b><br>Divisi: <b>${data.divisi}</b><br>UUID: <b>${data.uuid}</b>`;
+                } else {
+                    statusDiv.innerHTML = `<span class='error'>${data.pesan || 'Data tidak ditemukan.'}</span>`;
+                }
+            })
+            .catch(err => {
+                btnCari.disabled = false;
+                btnCari.textContent = 'Cari & Buat Kartu ID';
+                statusDiv.innerHTML = "<span class='error'>Tidak bisa terhubung ke server lokal. Cek tunnel masih aktif?</span>";
+            });
+        }
+
+        function buatQR(uuid, nomorIndukUntukNamaFile) {
             document.getElementById('qrOutput').innerHTML = '';
             // QR HANYA berisi UUID polos -- bukan JSON, bukan data pribadi apa pun
             new QRCode(document.getElementById('qrOutput'), {
@@ -151,13 +255,14 @@
                 height: 240,
                 correctLevel: QRCode.CorrectLevel.M
             });
+            document.getElementById('btnUnduh').dataset.namaFile = nomorIndukUntukNamaFile || 'kartu-id';
             document.getElementById('btnUnduh').style.display = 'block';
         }
 
         function unduhQR() {
             const el = document.querySelector('#qrOutput img') || document.querySelector('#qrOutput canvas');
             if (!el) return;
-            const namaFile = document.getElementById('inNomorInduk').value.trim() || 'kartu-id';
+            const namaFile = document.getElementById('btnUnduh').dataset.namaFile || 'kartu-id';
             const link = document.createElement('a');
             link.download = `kartu-id-${namaFile}.png`;
             link.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
