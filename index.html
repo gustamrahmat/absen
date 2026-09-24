@@ -409,7 +409,7 @@
             { nama: 'Pos 2', lat: -7.5043105, lng: 110.2265946, radius: 79 },
             { nama: 'Pos 3', lat: -7.5021834, lng: 110.2286008, radius: 43 },
             { nama: 'Pos  4', lat: -7.5021392, lng: 110.2271552, radius: 24 },
-            { nama: 'Uji coba', lat: -7.5051948, lng: 110.2254398, radius: 10 }
+            { nama: 'Uji coba IT', lat: -7.5051948, lng: 110.2254398, radius: 10 }
         ];
 
         const koneksiStatusDiv = document.getElementById('koneksiStatus');
@@ -659,6 +659,7 @@
                     namaKaryawan = data.nama;
                     noKaryawan = data.nomorInduk;
                     divisiKaryawan = data.divisi;
+                    uuidKartuAktif = uuid;
                     targetAktif = { lat: terdekat.pos.lat, lng: terdekat.pos.lng, radius: terdekat.pos.radius, nama: terdekat.pos.nama };
 
                     tampilkanNotifScan('berhasil', `Absen berhasil, ${data.nama}! Lokasi: ${terdekat.pos.nama}.`);
@@ -687,6 +688,7 @@
         let namaKaryawan = '';
         let noKaryawan = '';
         let divisiKaryawan = '';
+        let uuidKartuAktif = ''; // UUID kartu ID yang baru saja discan & terverifikasi, dikirim juga ke log-absen.csv
 
         // === TAHAP 2: SELFIE ===
         const video = document.getElementById('video');
@@ -733,6 +735,7 @@
             namaKaryawan = '';
             noKaryawan = '';
             divisiKaryawan = '';
+            uuidKartuAktif = '';
             targetAktif = null;
             mulaiScanQR();
         }
@@ -793,15 +796,15 @@
                 `Lokasi: ${targetAktif.nama}<br>Waktu: ${waktu}<br>Jarak dari titik absen: ${formatJarakCm(jarakSaatIni)}<br>Koordinat: ${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
 
             // Kirim foto + metadata ke server lokal (laptop) lewat tunnel, supaya tersimpan ke drive E:
+            // Catatan: jarak/lat/lng TIDAK dikirim ke log-absen.csv -- itu cuma dipakai untuk
+            // validasi zona & ditampilkan di layar "Absen Berhasil!" (lihat infoHasil di atas).
             kirimKeServerLokal({
+                uuid: uuidKartuAktif,
                 namaKaryawan: namaKaryawan,
                 noKaryawan: noKaryawan,
                 divisi: divisiKaryawan,
                 lokasi: targetAktif.nama,
                 waktu: waktu,
-                jarak: formatJarakCm(jarakSaatIni),
-                lat: userLat,
-                lng: userLng,
                 deviceId: deviceId,
                 fotoBase64: fotoDataUrl
             });
