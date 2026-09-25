@@ -1,273 +1,610 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ID QR Card Generator - Prakerin</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            background: #f3f4f6;
-            margin: 0;
-            padding: 30px 0;
-        }
-        .card {
-            background: white;
-            padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-        h2 { margin-top: 0; }
-        label {
-            display: block;
-            text-align: left;
-            font-size: 13px;
-            color: #4b5563;
-            margin-top: 12px;
-            margin-bottom: 4px;
-        }
-        input {
-            width: 100%;
-            padding: 9px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        button {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 15px;
-            width: 100%;
-            margin-top: 16px;
-            cursor: pointer;
-        }
-        button.secondary { background: #6b7280; }
-        button:disabled { background: #9ca3af; cursor: not-allowed; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Card Prakerin - QR Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --biru1: #4f6df5;
+        --biru2: #6a5cf0;
+        --hijau-bg: #e7faf1;
+        --hijau-teks: #16a34a;
+        --abu-label: #94a3b8;
+        --abu-teks: #64748b;
+        --navy: #1e2338;
+        --border: #e6e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        min-height: 100vh;
+        background: linear-gradient(160deg, #eef2ff 0%, #e6f0fb 45%, #eef7f3 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 16px;
+    }
 
-        /* ==== Tab pilih mode ==== */
-        .tabs { display: flex; gap: 6px; margin-top: 4px; }
-        .tab-btn {
-            flex: 1;
-            margin-top: 0;
-            background: #e5e7eb;
-            color: #374151;
-            font-size: 13.5px;
-            padding: 10px 6px;
-        }
-        .tab-btn.aktif { background: #2563eb; color: white; }
-        .panel { display: none; }
-        .panel.aktif { display: block; }
+    .app { width: 100%; max-width: 430px; }
 
-        #qrOutput { margin-top: 18px; display: flex; justify-content: center; }
-        #hasilKartu { display: none; margin-top: 14px; text-align: left; font-size: 13px; background: #f3f4f6; padding: 10px; border-radius: 8px; word-break: break-all; }
-        p.info { font-size: 12px; color: #9ca3af; margin-top: 10px; text-align: left; line-height: 1.5; }
-        #status { margin-top: 10px; font-size: 13px; }
-        .error { color: #dc2626; font-weight: bold; }
-        .success { color: #16a34a; font-weight: bold; }
-    </style>
+    .topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; min-height: 28px; }
+    .btn-back {
+        width: 30px; height: 30px; border-radius: 50%; background: white;
+        border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 15px; color: var(--navy); flex-shrink: 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn-back:hover { background: #f8fafc; }
+    .topbar-title { font-size: 12.5px; color: var(--abu-teks); font-weight: 500; }
+
+    .card {
+        background: white;
+        border-radius: 22px;
+        padding: 26px 24px 28px;
+        box-shadow: 0 20px 40px -12px rgba(30, 41, 89, 0.18);
+        border: 1px solid rgba(255,255,255,0.6);
+        position: relative;
+    }
+
+    .judul { font-size: 19px; font-weight: 800; color: var(--navy); margin: 0 0 4px; text-align: center; }
+    .subjudul { font-size: 12.5px; color: var(--abu-teks); text-align: center; margin: 0 0 20px; line-height: 1.5; }
+
+    /* ==== Tab Manual / Instan ==== */
+    .tabs { display: flex; gap: 6px; background: #f1f3f9; padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+    .tab-btn {
+        flex: 1; border: none; background: transparent; padding: 9px 6px;
+        border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--abu-teks);
+        cursor: pointer; font-family: inherit;
+    }
+    .tab-btn.aktif { background: white; color: var(--biru1); box-shadow: 0 2px 6px rgba(30,41,89,0.08); }
+    .panel { display: none; }
+    .panel.aktif { display: block; }
+
+    label {
+        display: block; font-size: 12px; font-weight: 600; color: #475569;
+        margin-bottom: 6px; margin-top: 16px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input {
+        width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+        border-radius: 12px; font-size: 14px; font-family: inherit; background: #f8fafc;
+        transition: border-color .15s, background .15s;
+    }
+    input:focus { outline: none; border-color: var(--biru1); background: white; }
+    input::placeholder { color: #b6bcca; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-utama {
+        width: 100%; margin-top: 24px; padding: 14px; border: none; border-radius: 14px;
+        background: linear-gradient(135deg, var(--biru1), var(--biru2)); color: white;
+        font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+        box-shadow: 0 10px 20px -6px rgba(79, 109, 245, 0.45);
+        transition: transform .1s, box-shadow .15s;
+    }
+    .btn-utama:hover { box-shadow: 0 12px 24px -6px rgba(79, 109, 245, 0.55); }
+    .btn-utama:active { transform: scale(0.98); }
+    .btn-utama:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .pesan-error {
+        font-size: 12.5px; color: #dc2626; background: #fef2f2;
+        border: 1px solid #fecaca; border-radius: 10px; padding: 9px 12px;
+        margin-top: 14px; display: none;
+    }
+
+    /* ==== Dropdown custom Departemen/Divisi (mengikuti referensi desain) ==== */
+    .dropdown-wrap { position: relative; }
+    .dropdown-trigger {
+        width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px;
+        background: #f8fafc; font-size: 14px; font-family: inherit; text-align: left;
+        display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        color: #b6bcca;
+    }
+    .dropdown-trigger.terisi { color: var(--navy); font-weight: 500; }
+    .dropdown-trigger .chev { color: #94a3b8; font-size: 11px; transition: transform .15s; }
+    .dropdown-trigger.terbuka .chev { transform: rotate(180deg); }
+
+    .dropdown-panel {
+        position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 40;
+        background: white; border: 1px solid var(--border); border-radius: 16px;
+        box-shadow: 0 16px 32px -10px rgba(30,41,89,0.25);
+        max-height: 320px; overflow-y: auto; padding: 6px 0;
+    }
+    .dropdown-panel-title {
+        font-size: 10.5px; font-weight: 700; letter-spacing: .05em; color: var(--abu-label);
+        padding: 10px 16px 8px; text-transform: uppercase;
+    }
+    .dropdown-item {
+        padding: 12px 14px; margin: 2px 8px; border-radius: 10px;
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 13.5px; color: var(--navy); cursor: pointer; border: 1.5px solid transparent;
+    }
+    .dropdown-item:hover { background: #f8fafc; }
+    .dropdown-item.selected {
+        border-color: var(--biru1); background: #eef2ff; color: var(--biru1); font-weight: 700;
+    }
+    .dropdown-item .check { color: var(--biru1); font-weight: 800; }
+
+    .link-manual {
+        background: none; border: none; padding: 0; margin-top: 8px;
+        font-size: 11.5px; color: var(--biru1); font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .link-manual:hover { text-decoration: underline; }
+
+    /* ==== Autocomplete NIM (mode Daftar Instan) ==== */
+    .saran-item { display: block; }
+    .saran-nim { font-size: 14px; font-weight: 700; color: var(--navy); }
+    .saran-detail { font-size: 12px; color: rgba(30,35,56,0.5); margin-top: 2px; }
+    .saran-kosong { padding: 14px 16px; font-size: 12.5px; color: var(--abu-label); text-align: center; }
+
+    /* ==== Tampilan hasil ==== */
+    .badge-sukses {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        background: var(--hijau-bg); color: var(--hijau-teks);
+        font-size: 12.5px; font-weight: 700; padding: 9px; border-radius: 30px; margin-bottom: 20px;
+    }
+    .qr-box {
+        display: flex; justify-content: center; padding: 16px;
+        background: #f8fafc; border-radius: 16px; margin-bottom: 18px;
+    }
+    .qr-box img, .qr-box canvas { border-radius: 8px; }
+
+    .ringkasan { background: #f8fafc; border-radius: 14px; padding: 16px; }
+    .baris-info { margin-bottom: 12px; }
+    .baris-info:last-child { margin-bottom: 0; }
+    .baris-info .lbl { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: var(--abu-label); text-transform: uppercase; margin-bottom: 2px; }
+    .baris-info .val { font-size: 14px; font-weight: 700; color: var(--navy); word-break: break-word; }
+    .baris-info .val.mono { font-family: 'Courier New', monospace; font-size: 11.5px; font-weight: 500; color: #475569; }
+
+    .btn-unduh {
+        width: 100%; margin-top: 20px; padding: 13px; border: none; border-radius: 14px;
+        background: linear-gradient(135deg, var(--biru1), var(--biru2));
+        color: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-unduh:hover { opacity: .95; }
+
+    .hidden { display: none !important; }
+
+    /* ==== Daftar Cetak ==== */
+    #wrapDaftarCetak { display: none; width: 100%; max-width: 700px; margin-top: 22px; }
+    .daftar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .daftar-header h3 { margin: 0; font-size: 14px; color: var(--navy); }
+    .daftar-aksi { display: flex; gap: 8px; }
+    .daftar-aksi button {
+        width: auto; margin-top: 0; padding: 8px 14px; font-size: 12.5px; border: none;
+        border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600;
+    }
+    .daftar-aksi .btn-cetak { background: var(--biru1); color: white; }
+    .daftar-aksi .btn-hapus { background: #fee2e2; color: #dc2626; }
+    #daftarCetakList { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .cetak-item {
+        background: white; border: 1px solid var(--border); border-radius: 12px; padding: 10px;
+        display: flex; align-items: center; gap: 8px; font-size: 12px; text-align: left;
+    }
+    .cetak-qr { flex-shrink: 0; width: 62px; height: 62px; }
+    .cetak-info b { display: block; font-size: 13px; margin-bottom: 2px; color: var(--navy); }
+    .cetak-info { color: var(--abu-teks); }
+
+    @media print {
+        body { background: white; padding: 0; }
+        .no-print { display: none !important; }
+        #wrapDaftarCetak { display: block !important; max-width: 100%; width: 100%; margin: 0; }
+        .daftar-header { display: none; }
+        #daftarCetakList { grid-template-columns: repeat(2, 1fr); }
+        .cetak-item { break-inside: avoid; page-break-inside: avoid; border: 1px dashed #999; }
+    }
+
+    @media (max-width: 380px) {
+        .card { padding: 22px 18px 24px; border-radius: 18px; }
+        .judul { font-size: 17px; }
+    }
+</style>
 </head>
 <body>
-    <div class="card">
-        <h2>ID Card Generator - Prakerin</h2>
-        <p class="info">Isi data sekali per anak magang. Sistem akan membuat UUID acak sebagai kartu ID mereka. Pilih cara sesuai kondisi datanya.</p>
 
-        <div class="tabs">
-            <button class="tab-btn aktif" id="tabBaru" onclick="pindahTab('baru')">Daftar Baru</button>
-            <button class="tab-btn" id="tabCepat" onclick="pindahTab('cepat')">Daftar Instan</button>
+<div class="app no-print">
+
+    <!-- ============ VIEW 1: FORM ============ -->
+    <div id="viewForm">
+        <div class="topbar"><span class="topbar-title">ID QR Generator &middot; Anak Magang</span></div>
+        <div class="card">
+            <h1 class="judul">ID Card Prakerin</h1>
+            <p class="subjudul">Isi form ini untuk generate ID Card &amp; QR presensi otomatis per anak magang.</p>
+
+            <div class="tabs">
+                <button class="tab-btn aktif" id="tabManual" onclick="pindahTab('manual')">Daftar Manual</button>
+                <button class="tab-btn" id="tabInstan" onclick="pindahTab('instan')">Daftar Instan</button>
+            </div>
+
+            <!-- ==== PANEL: DAFTAR MANUAL ==== -->
+            <div class="panel aktif" id="panelManual">
+                <label for="inNama">Nama Lengkap</label>
+                <input id="inNama" placeholder="Masukkan nama sesuai KTP/Kartu Pelajar" />
+
+                <label for="inNomorInduk">Nomor Induk (NIM / NISN)</label>
+                <input id="inNomorInduk" placeholder="Contoh: 0041234567" />
+
+                <label>Departemen / Divisi</label>
+                <div class="dropdown-wrap" id="dropdownWrapDivisi">
+                    <button type="button" class="dropdown-trigger" id="triggerDivisi" onclick="toggleDropdownDivisi()">
+                        <span id="labelDivisi">Pilih penempatan...</span>
+                        <span class="chev">&#9662;</span>
+                    </button>
+                    <div class="dropdown-panel hidden" id="panelDivisi">
+                        <div class="dropdown-panel-title">Pilih Departemen / Divisi</div>
+                        <div id="listDivisiOptions"></div>
+                    </div>
+                </div>
+                <input type="text" id="inDivisiManual" class="hidden" placeholder="Ketik nama departemen/divisi" />
+                <button type="button" class="link-manual" id="linkToggleManual" onclick="toggleInputManualDivisi()">Departemen tidak ada di daftar? Ketik manual</button>
+
+                <div class="grid2">
+                    <div>
+                        <label for="inAsalSekolah">Asal Instansi</label>
+                        <input id="inAsalSekolah" placeholder="Ctn: SMKN 1" />
+                    </div>
+                    <div>
+                        <label for="inJurusan">Jurusan</label>
+                        <input id="inJurusan" placeholder="Ctn: TKJ" />
+                    </div>
+                </div>
+
+                <button class="btn-utama" id="btnDaftar" onclick="daftarkanAnakMagang()">Daftarkan &amp; Buat ID Card</button>
+            </div>
+
+            <!-- ==== PANEL: DAFTAR INSTAN ==== -->
+            <div class="panel" id="panelInstan">
+                <p class="subjudul" style="margin-bottom:16px; text-align:left;">
+                    Data sudah diisi lewat Database.
+                    Ketik NIM/NISN-nya dan ID akan langsung muncul.
+                </p>
+                <label for="inNomorIndukCepat">NIM / NISN</label>
+                <div class="dropdown-wrap">
+                    <input id="inNomorIndukCepat" placeholder="Ketik NIM/NISN..." autocomplete="off" oninput="cariNimDebounced()" onfocus="cariNimDebounced()" />
+                    <div class="dropdown-panel hidden" id="panelSaranNim"></div>
+                </div>
+
+                <button class="btn-utama" id="btnCari" onclick="buatKartuIdCepat()">Cari &amp; Buat Kartu ID</button>
+            </div>
+
+            <div class="pesan-error" id="pesanError"></div>
         </div>
-
-        <!-- ==== PANEL 1: DAFTAR BARU (FORM LENGKAP) ==== -->
-        <div class="panel aktif" id="panelBaru">
-            <label>Nama Lengkap</label>
-            <input id="inNama" placeholder="Nama lengkap" />
-
-            <label>Nomor Induk (NIM / NISN)</label>
-            <input id="inNomorInduk" placeholder="NIM untuk mahasiswa, NISN untuk siswa SMK" />
-
-            <label>Departemen / Divisi</label>
-            <input id="inDivisi" placeholder="Contoh: IT, HRD, Marketing" />
-
-            <label>Asal Sekolah / Universitas</label>
-            <input id="inAsalSekolah" placeholder="Opsional" />
-
-            <label>Jurusan / Program Studi</label>
-            <input id="inJurusan" placeholder="Opsional" />
-
-            <button id="btnDaftar" onclick="daftarkanAnakMagang()">Daftarkan & Buat Kartu ID</button>
-        </div>
-
-        <!-- ==== PANEL 2: CEPAT (CARI DARI DATA YANG SUDAH ADA) ==== -->
-        <div class="panel" id="panelCepat">
-            <p class="info">
-                Cukup masukkan Nomor Induk (NIM/NISN), dan sistem akan membuat UUID acak sebagai kartu ID mereka.
-            </p>
-            <label>NIM / NISN</label>
-            <input id="inNomorIndukCepat" placeholder="Sesuai yang ada di data." />
-
-            <button id="btnCari" onclick="buatKartuIdCepat()">Buat Kartu ID</button>
-        </div>
-
-        <div id="status"></div>
-        <div id="qrOutput"></div>
-        <div id="hasilKartu"></div>
-        <button class="secondary" id="btnUnduh" style="display:none;" onclick="unduhQR()">Unduh Gambar QR (PNG)</button>
     </div>
 
-    <script>
-        // GANTI dengan alamat tunnel server lokal Anda yang sedang aktif (sama seperti di index.html).
-        // Kalau masih pakai Cloudflare Quick Tunnel gratis, URL ini berubah SETIAP restart tunnel --
-        // dan harus disamakan juga dengan URL_SERVER_LOKAL_BASE di index.html. Kalau sering lupa,
-        // pertimbangkan pakai Named Tunnel Cloudflare (URL tetap, tidak berubah tiap restart).
-        const URL_SERVER_LOKAL_BASE = 'https://redhead-volume-pending-cassette.trycloudflare.com';
-        const URL_DAFTAR = URL_SERVER_LOKAL_BASE + '/daftarkan-anak-magang';
-        const URL_BUAT_KARTU = URL_SERVER_LOKAL_BASE + '/buat-kartu-id';
+    <!-- ============ VIEW 2: HASIL ============ -->
+    <div id="viewHasil" class="hidden">
+        <div class="topbar">
+            <button class="btn-back" onclick="kembaliKeForm()">&larr;</button>
+            <span class="topbar-title">QR Generated</span>
+        </div>
+        <div class="card">
+            <div class="badge-sukses">&#10003; QR Berhasil Dibuat!</div>
+            <div class="qr-box" id="qrOutput"></div>
+            <div class="ringkasan">
+                <div class="baris-info"><div class="lbl">Nama Lengkap</div><div class="val" id="hasilNama">-</div></div>
+                <div class="baris-info"><div class="lbl">Nomor Induk / NISN</div><div class="val" id="hasilNomorInduk">-</div></div>
+                <div class="baris-info"><div class="lbl">Departemen / Divisi</div><div class="val" id="hasilDivisi">-</div></div>
+                <div class="baris-info"><div class="lbl">UUID</div><div class="val mono" id="hasilUuid">-</div></div>
+            </div>
+            <button class="btn-unduh" onclick="unduhQR()">&#8681; Unduh Gambar QR (PNG)</button>
+        </div>
+    </div>
 
-        // Kalau server.js diisi API_KEY, isi juga nilai yang sama di sini. Kalau server.js
-        // API_KEY-nya dikosongkan, baris ini tidak berpengaruh apa-apa.
-        const API_KEY = '';
+</div>
 
-        function headerFetch() {
-            const h = { 'Content-Type': 'application/json' };
-            if (API_KEY) h['x-api-key'] = API_KEY;
-            return h;
+<!-- ==== DAFTAR CETAK ==== -->
+<div id="wrapDaftarCetak">
+    <div class="daftar-header no-print">
+        <h3>Daftar Cetak (<span id="jumlahDaftarCetak">0</span> orang)</h3>
+        <div class="daftar-aksi">
+            <button class="btn-cetak" onclick="cetakDaftar()">&#128424; Cetak Daftar</button>
+            <button class="btn-hapus" onclick="kosongkanDaftarCetak()">Kosongkan</button>
+        </div>
+    </div>
+    <div id="daftarCetakList"></div>
+</div>
+
+<script>
+    // ============ KONFIGURASI SERVER ============
+    // GANTI dengan alamat tunnel server lokal Anda yang sedang aktif (sama seperti di index.html).
+    // Kalau masih pakai Cloudflare Quick Tunnel gratis, URL ini berubah SETIAP restart tunnel --
+    // dan harus disamakan juga dengan URL_SERVER_LOKAL_BASE di index.html.
+    const URL_SERVER_LOKAL_BASE = 'https://redhead-volume-pending-cassette.trycloudflare.com';
+    const URL_DAFTAR = URL_SERVER_LOKAL_BASE + '/daftarkan-anak-magang';
+    const URL_BUAT_KARTU = URL_SERVER_LOKAL_BASE + '/buat-kartu-id';
+    const URL_CARI = URL_SERVER_LOKAL_BASE + '/cari-anak-magang';
+
+    // Kalau server.js diisi API_KEY, isi juga nilai yang sama di sini.
+    const API_KEY = '';
+
+    function headerFetch() {
+        const h = { 'Content-Type': 'application/json' };
+        if (API_KEY) h['x-api-key'] = API_KEY;
+        return h;
+    }
+
+    // ============ DAFTAR DEPARTEMEN/DIVISI (custom dropdown) ============
+    const daftarDivisi = [
+        'SHE (K3)', 'HCRS', 'HCD', 'IT', 'IFP - STAMPING', 'PPID - LOGISTIK',
+        'BODY BUS', 'TRAILER', 'ADMINISTRASI', 'DAPUR', 'STAFF LEGAL', 'FINISHING MINI BUS'
+    ];
+    let divisiTerpilih = '';
+    let modeManualDivisi = false;
+
+    function renderListDivisi() {
+        const wrap = document.getElementById('listDivisiOptions');
+        wrap.innerHTML = daftarDivisi.map(d => `
+            <div class="dropdown-item ${d === divisiTerpilih ? 'selected' : ''}" onclick="pilihDivisi('${d.replace(/'/g, "\\'")}')">
+                <span>${d}</span>
+                ${d === divisiTerpilih ? '<span class="check">&#10003;</span>' : ''}
+            </div>
+        `).join('');
+    }
+
+    function toggleDropdownDivisi() {
+        const panel = document.getElementById('panelDivisi');
+        const trigger = document.getElementById('triggerDivisi');
+        const mauBuka = panel.classList.contains('hidden');
+        tutupSemuaDropdown();
+        if (mauBuka) {
+            renderListDivisi();
+            panel.classList.remove('hidden');
+            trigger.classList.add('terbuka');
         }
+    }
 
-        function pindahTab(mode) {
-            document.getElementById('tabBaru').classList.toggle('aktif', mode === 'baru');
-            document.getElementById('tabCepat').classList.toggle('aktif', mode === 'cepat');
-            document.getElementById('panelBaru').classList.toggle('aktif', mode === 'baru');
-            document.getElementById('panelCepat').classList.toggle('aktif', mode === 'cepat');
-            resetHasil();
+    function pilihDivisi(nama) {
+        divisiTerpilih = nama;
+        const label = document.getElementById('labelDivisi');
+        label.textContent = nama;
+        document.getElementById('triggerDivisi').classList.add('terisi');
+        tutupSemuaDropdown();
+    }
+
+    function toggleInputManualDivisi() {
+        modeManualDivisi = !modeManualDivisi;
+        document.getElementById('dropdownWrapDivisi').classList.toggle('hidden', modeManualDivisi);
+        document.getElementById('inDivisiManual').classList.toggle('hidden', !modeManualDivisi);
+        document.getElementById('linkToggleManual').textContent = modeManualDivisi
+            ? 'Pilih dari daftar departemen'
+            : 'Departemen tidak ada di daftar? Ketik manual';
+        if (modeManualDivisi) document.getElementById('inDivisiManual').focus();
+    }
+
+    function ambilNilaiDivisi() {
+        return modeManualDivisi
+            ? document.getElementById('inDivisiManual').value.trim()
+            : divisiTerpilih;
+    }
+
+    function tutupSemuaDropdown() {
+        document.getElementById('panelDivisi').classList.add('hidden');
+        document.getElementById('triggerDivisi').classList.remove('terbuka');
+        document.getElementById('panelSaranNim').classList.add('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown-wrap')) tutupSemuaDropdown();
+    });
+
+    // ============ TAB MANUAL / INSTAN ============
+    function pindahTab(mode) {
+        document.getElementById('tabManual').classList.toggle('aktif', mode === 'manual');
+        document.getElementById('tabInstan').classList.toggle('aktif', mode === 'instan');
+        document.getElementById('panelManual').classList.toggle('aktif', mode === 'manual');
+        document.getElementById('panelInstan').classList.toggle('aktif', mode === 'instan');
+        sembunyikanError();
+    }
+
+    function tampilkanError(pesan) {
+        const el = document.getElementById('pesanError');
+        el.textContent = pesan;
+        el.style.display = 'block';
+    }
+    function sembunyikanError() {
+        document.getElementById('pesanError').style.display = 'none';
+    }
+
+    // ============ MODE MANUAL: DAFTAR BARU ============
+    function daftarkanAnakMagang() {
+        const nama = document.getElementById('inNama').value.trim();
+        const nomorInduk = document.getElementById('inNomorInduk').value.trim();
+        const divisi = ambilNilaiDivisi();
+        const asalSekolah = document.getElementById('inAsalSekolah').value.trim();
+        const jurusan = document.getElementById('inJurusan').value.trim();
+
+        if (!nama || !nomorInduk || !divisi) {
+            tampilkanError('Nama, Nomor Induk, dan Departemen/Divisi wajib diisi.');
+            return;
         }
+        sembunyikanError();
 
-        function resetHasil() {
-            document.getElementById('status').textContent = '';
-            document.getElementById('qrOutput').innerHTML = '';
-            document.getElementById('hasilKartu').style.display = 'none';
-            document.getElementById('btnUnduh').style.display = 'none';
-        }
+        const btn = document.getElementById('btnDaftar');
+        btn.disabled = true;
+        btn.textContent = 'Mendaftarkan...';
 
-        // === MODE 1: DAFTAR BARU ===
-        function daftarkanAnakMagang() {
-            const nama = document.getElementById('inNama').value.trim();
-            const nomorInduk = document.getElementById('inNomorInduk').value.trim();
-            const divisi = document.getElementById('inDivisi').value.trim();
-            const asalSekolah = document.getElementById('inAsalSekolah').value.trim();
-            const jurusan = document.getElementById('inJurusan').value.trim();
-
-            const statusDiv = document.getElementById('status');
-            const btnDaftar = document.getElementById('btnDaftar');
-
-            if (!nama || !nomorInduk || !divisi) {
-                statusDiv.innerHTML = "<span class='error'>Nama, Nomor Induk, dan Divisi wajib diisi.</span>";
-                return;
+        fetch(URL_DAFTAR, {
+            method: 'POST',
+            headers: headerFetch(),
+            body: JSON.stringify({ nama, nomorInduk, divisi, asalSekolah, jurusan })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Daftarkan & Buat ID Card';
+            if (data.ok) {
+                tampilkanHasil({ nama, nomorInduk, divisi, uuid: data.uuid });
+                tambahKeDaftarCetak({ uuid: data.uuid, nama, nomorInduk, divisi });
+            } else {
+                tampilkanError(data.pesan || 'Gagal mendaftarkan data.');
             }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Daftarkan & Buat ID Card';
+            tampilkanError('Tidak bisa terhubung ke server lokal. Cek tunnel masih aktif?');
+        });
+    }
 
-            btnDaftar.disabled = true;
-            btnDaftar.textContent = 'Mendaftarkan...';
-            statusDiv.textContent = '';
+    // ============ MODE INSTAN: AUTOCOMPLETE NIM ============
+    let timerCariNim = null;
 
-            fetch(URL_DAFTAR, {
-                method: 'POST',
-                headers: headerFetch(),
-                body: JSON.stringify({ nama, nomorInduk, divisi, asalSekolah, jurusan })
-            })
-            .then(res => res.json())
-            .then(data => {
-                btnDaftar.disabled = false;
-                btnDaftar.textContent = 'Daftarkan & Buat Kartu ID';
+    function cariNimDebounced() {
+        clearTimeout(timerCariNim);
+        const q = document.getElementById('inNomorIndukCepat').value.trim();
+        if (!q) { document.getElementById('panelSaranNim').classList.add('hidden'); return; }
+        timerCariNim = setTimeout(() => cariNim(q), 300);
+    }
 
-                if (data.ok) {
-                    statusDiv.innerHTML = `<span class='success'>${data.pesan || 'Berhasil didaftarkan!'}</span>`;
-                    buatQR(data.uuid, nomorInduk);
-                    document.getElementById('hasilKartu').style.display = 'block';
-                    document.getElementById('hasilKartu').innerHTML =
-                        `Nama: <b>${nama}</b><br>Nomor Induk: <b>${nomorInduk}</b><br>Divisi: <b>${divisi}</b><br>UUID: <b>${data.uuid}</b>`;
-                } else {
-                    statusDiv.innerHTML = `<span class='error'>Gagal: ${data.pesan || 'tidak diketahui'}</span>`;
-                }
-            })
-            .catch(err => {
-                btnDaftar.disabled = false;
-                btnDaftar.textContent = 'Daftarkan & Buat Kartu ID';
-                statusDiv.innerHTML = "<span class='error'>Tidak bisa terhubung ke server lokal. Cek tunnel masih aktif?</span>";
-            });
-        }
-
-        // === MODE 2: CEPAT (CARI DARI DATA YANG SUDAH ADA) ===
-        function buatKartuIdCepat() {
-            const nomorInduk = document.getElementById('inNomorIndukCepat').value.trim();
-            const statusDiv = document.getElementById('status');
-            const btnCari = document.getElementById('btnCari');
-
-            if (!nomorInduk) {
-                statusDiv.innerHTML = "<span class='error'>Isi dulu NIM/NISN-nya.</span>";
-                return;
+    function cariNim(q) {
+        fetch(URL_CARI + '?q=' + encodeURIComponent(q), { headers: headerFetch() })
+        .then(res => res.json())
+        .then(data => {
+            const panel = document.getElementById('panelSaranNim');
+            if (!data.ok || !data.hasil || data.hasil.length === 0) {
+                panel.innerHTML = '<div class="saran-kosong">Tidak ada NIM/NISN yang cocok</div>';
+            } else {
+                panel.innerHTML = data.hasil.map(orang => `
+                    <div class="dropdown-item saran-item" onclick="pilihSaranNim('${String(orang.nomorInduk).replace(/'/g, "\\'")}')">
+                        <div>
+                            <div class="saran-nim">${orang.nomorInduk}</div>
+                            <div class="saran-detail">${orang.nama || '-'} &bull; ${orang.divisi || '-'}</div>
+                        </div>
+                    </div>
+                `).join('');
             }
+            panel.classList.remove('hidden');
+        })
+        .catch(() => {
+            // Server belum nyambung -- diamkan saja, pengurus tetap bisa ketik manual & tekan tombol cari.
+            document.getElementById('panelSaranNim').classList.add('hidden');
+        });
+    }
 
-            btnCari.disabled = true;
-            btnCari.textContent = 'Mencari...';
-            resetHasil();
+    function pilihSaranNim(nomorInduk) {
+        document.getElementById('inNomorIndukCepat').value = nomorInduk;
+        document.getElementById('panelSaranNim').classList.add('hidden');
+    }
 
-            fetch(URL_BUAT_KARTU, {
-                method: 'POST',
-                headers: headerFetch(),
-                body: JSON.stringify({ nomorInduk })
-            })
-            .then(res => res.json())
-            .then(data => {
-                btnCari.disabled = false;
-                btnCari.textContent = 'Cari & Buat Kartu ID';
-
-                if (data.ok) {
-                    statusDiv.innerHTML = "<span class='success'>Ditemukan!</span>";
-                    buatQR(data.uuid, data.nomorInduk);
-                    document.getElementById('hasilKartu').style.display = 'block';
-                    document.getElementById('hasilKartu').innerHTML =
-                        `Nama: <b>${data.nama}</b><br>Nomor Induk: <b>${data.nomorInduk}</b><br>Divisi: <b>${data.divisi}</b><br>UUID: <b>${data.uuid}</b>`;
-                } else {
-                    statusDiv.innerHTML = `<span class='error'>${data.pesan || 'Data tidak ditemukan.'}</span>`;
-                }
-            })
-            .catch(err => {
-                btnCari.disabled = false;
-                btnCari.textContent = 'Cari & Buat Kartu ID';
-                statusDiv.innerHTML = "<span class='error'>Tidak bisa terhubung ke server lokal. Cek tunnel masih aktif?</span>";
-            });
+    function buatKartuIdCepat() {
+        const nomorInduk = document.getElementById('inNomorIndukCepat').value.trim();
+        if (!nomorInduk) {
+            tampilkanError('Isi dulu NIM/NISN-nya.');
+            return;
         }
+        sembunyikanError();
 
-        function buatQR(uuid, nomorIndukUntukNamaFile) {
-            document.getElementById('qrOutput').innerHTML = '';
-            // QR HANYA berisi UUID polos -- bukan JSON, bukan data pribadi apa pun
-            new QRCode(document.getElementById('qrOutput'), {
-                text: uuid,
-                width: 240,
-                height: 240,
-                correctLevel: QRCode.CorrectLevel.M
-            });
-            document.getElementById('btnUnduh').dataset.namaFile = nomorIndukUntukNamaFile || 'kartu-id';
-            document.getElementById('btnUnduh').style.display = 'block';
-        }
+        const btn = document.getElementById('btnCari');
+        btn.disabled = true;
+        btn.textContent = 'Mencari...';
 
-        function unduhQR() {
-            const el = document.querySelector('#qrOutput img') || document.querySelector('#qrOutput canvas');
-            if (!el) return;
-            const namaFile = document.getElementById('btnUnduh').dataset.namaFile || 'kartu-id';
-            const link = document.createElement('a');
-            link.download = `kartu-id-${namaFile}.png`;
-            link.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
-            link.click();
-        }
-    </script>
+        fetch(URL_BUAT_KARTU, {
+            method: 'POST',
+            headers: headerFetch(),
+            body: JSON.stringify({ nomorInduk })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Cari & Buat Kartu ID';
+            if (data.ok) {
+                tampilkanHasil({ nama: data.nama, nomorInduk: data.nomorInduk, divisi: data.divisi, uuid: data.uuid });
+                tambahKeDaftarCetak({ uuid: data.uuid, nama: data.nama, nomorInduk: data.nomorInduk, divisi: data.divisi });
+            } else {
+                tampilkanError(data.pesan || 'Data tidak ditemukan.');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Cari & Buat Kartu ID';
+            tampilkanError('Tidak bisa terhubung ke server lokal. Cek tunnel masih aktif?');
+        });
+    }
+
+    // ============ VIEW HASIL ============
+    function tampilkanHasil({ nama, nomorInduk, divisi, uuid }) {
+        document.getElementById('hasilNama').textContent = nama;
+        document.getElementById('hasilNomorInduk').textContent = nomorInduk;
+        document.getElementById('hasilDivisi').textContent = divisi;
+        document.getElementById('hasilUuid').textContent = uuid;
+
+        document.getElementById('qrOutput').innerHTML = '';
+        new QRCode(document.getElementById('qrOutput'), {
+            text: uuid, width: 190, height: 190, correctLevel: QRCode.CorrectLevel.M
+        });
+
+        document.getElementById('viewForm').classList.add('hidden');
+        document.getElementById('viewHasil').classList.remove('hidden');
+    }
+
+    function kembaliKeForm() {
+        document.getElementById('viewHasil').classList.add('hidden');
+        document.getElementById('viewForm').classList.remove('hidden');
+    }
+
+    function unduhQR() {
+        const el = document.querySelector('#qrOutput img') || document.querySelector('#qrOutput canvas');
+        if (!el) return;
+        const namaFile = (document.getElementById('hasilNomorInduk').textContent || 'kartu-id').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const link = document.createElement('a');
+        link.download = `kartu-id-${namaFile}.png`;
+        link.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
+        link.click();
+    }
+
+    // ============ DAFTAR CETAK ============
+    let daftarCetak = [];
+
+    function tambahKeDaftarCetak(orang) {
+        const idxLama = daftarCetak.findIndex(o => o.nomorInduk === orang.nomorInduk);
+        if (idxLama !== -1) daftarCetak[idxLama] = orang;
+        else daftarCetak.push(orang);
+        renderDaftarCetak();
+    }
+
+    function renderDaftarCetak() {
+        const wrap = document.getElementById('wrapDaftarCetak');
+        const list = document.getElementById('daftarCetakList');
+        document.getElementById('jumlahDaftarCetak').textContent = daftarCetak.length;
+
+        if (daftarCetak.length === 0) { wrap.style.display = 'none'; list.innerHTML = ''; return; }
+        wrap.style.display = 'block';
+        list.innerHTML = '';
+
+        daftarCetak.forEach((orang, idx) => {
+            const item = document.createElement('div');
+            item.className = 'cetak-item';
+            const qrDiv = document.createElement('div');
+            qrDiv.className = 'cetak-qr';
+            qrDiv.id = `cetakQr${idx}`;
+            const info = document.createElement('div');
+            info.className = 'cetak-info';
+            info.innerHTML = `<b>${orang.nama}</b>${orang.nomorInduk}<br>${orang.divisi}`;
+            item.appendChild(qrDiv);
+            item.appendChild(info);
+            list.appendChild(item);
+            new QRCode(qrDiv, { text: orang.uuid, width: 62, height: 62, correctLevel: QRCode.CorrectLevel.M });
+        });
+    }
+
+    function cetakDaftar() {
+        if (daftarCetak.length === 0) { alert('Daftar cetak masih kosong -- generate kartu ID dulu.'); return; }
+        window.print();
+    }
+
+    function kosongkanDaftarCetak() {
+        if (daftarCetak.length === 0) return;
+        if (!confirm('Kosongkan Daftar Cetak? (Data di server tidak terhapus, cuma daftar tampilan ini saja.)')) return;
+        daftarCetak = [];
+        renderDaftarCetak();
+    }
+</script>
 </body>
 </html>
