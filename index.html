@@ -28,7 +28,6 @@ h1{font-size:22px;margin:0 0 4px}.sub{font-size:13px;color:var(--gy);margin:0 0 
 .notif.berhasil{display:block;background:#e7faf1;color:#0f7a3a}.notif.gagal{display:block;background:#fef2f2;color:var(--mr)}.notif.proses{display:block}
 .vp{position:relative;aspect-ratio:1/1;max-height:340px;width:100%;border-radius:18px;overflow:hidden;background:radial-gradient(#1b2035,#0b0e1a);display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;text-align:center;padding:20px}
 .vp video,.vp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.vp.selfie video{transform:scaleX(-1)}
 .br{position:absolute;width:34px;height:34px;border:4px solid #4f7bff;pointer-events:none}
 .br.ok{border-color:#22c55e}
 .tl{top:16%;left:16%;border-right:0;border-bottom:0;border-radius:10px 0 0 0}.tr{top:16%;right:16%;border-left:0;border-bottom:0;border-radius:0 10px 0 0}
@@ -179,8 +178,7 @@ function tampil(id) { ['vBeranda','vScan','vSelfie','vLaporan'].forEach(v => $(v
 let sesiAktif = null;
 function dalamJam(k) { const d = new Date(), h = d.getHours() + d.getMinutes() / 60; return h >= SESI[k].mulai && h < SESI[k].selesai; }
 function bukaSesi() {
-  ['pagi','sore'].forEach(k => { const a = dalamJam(k); $('sc' + (k==='pagi'?'Pagi':'Sore')).classList.toggle('tersedia', a); $('tag' + (k==='pagi'?'Pagi':'Sore')).classList.toggle('hide', !a); });
-  $('mSesi').classList.add('buka');
+  ['pagi','sore'].forEach(k => { const a = dalamJam(k); $('sc' + (k==='pagi'?'Pagi':'Sore')).classList.toggle('tersedia', a); $('tag' + (k==='pagi'?'Pagi':'Sore')).classList.toggle('hide', !a); });$('mSesi').classList.add('buka');
 }
 function tutupSesi() { $('mSesi').classList.remove('buka'); }
 function pilihSesi(k) {
@@ -215,7 +213,7 @@ function mulaiTracking() {
 }
 function perbaruiTile() {
   const t = posTerdekat();
-  if (t) { $('tJarakL').textContent = 'Jarak ke ' + t.pos.nama; $('tJarak').textContent = cm(t.jarak); $('tJarak').className = t.jarak <= t.pos.radius ? 'baik' : ''; }
+  if (t) { $('tJarakL').textContent = 'Jarak ke ' + t.pos.nama; $('tJarak').textContent = cm(t.jarak);$('tJarak').className = t.jarak <= t.pos.radius ? 'baik' : ''; }
   if (akurasi !== null) { const ok = akurasi <= MAX_AKURASI; $('tAkurasi').textContent = akurasi.toFixed(1) + ' m' + (ok ? '' : ' (Kurang)'); $('tAkurasi').className = ok ? 'baik' : 'buruk'; }
 }
 
@@ -227,7 +225,7 @@ function mulaiScan() {
   scanning = true; memproses = false; bracket(false); $('notif').className = 'notif';
   clearInterval(tileTimer); tileTimer = setInterval(perbaruiTile, 500);
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }).then(s => {
-    streamScan = s; $('videoScan').srcObject = s; $('videoScan').play(); $('scanStatus').textContent = 'Arahkan Kartu ID ke kamera...'; requestAnimationFrame(frame);
+    streamScan = s; $('videoScan').srcObject = s; $('videoScan').play();$('scanStatus').textContent = 'Arahkan Kartu ID ke kamera...'; requestAnimationFrame(frame);
   }).catch(() => { $('scanStatus').textContent = 'Kamera tidak bisa diakses. Aktifkan izin kamera.'; });
 }
 function stopStreamScan() { if (streamScan) { streamScan.getTracks().forEach(t => t.stop()); streamScan = null; } }
@@ -273,25 +271,22 @@ function kembaliKeScan() { tutupKamera(); ident = null; target = null; tampil('v
 // ===== Selfie (pagi) =====
 let streamCam = null, foto = null, tahap = 'idle';
 function bukaSelfie() {
-  tahap = 'idle'; foto = null; $('video').classList.add('hide'); $('preview').classList.add('hide'); $('ph').classList.remove('hide');
-  $('btnSelfie').textContent = 'Aktifkan Kamera'; $('btnSelfie').disabled = false; $('btnUlang').classList.add('hide'); $('errSelfie').textContent = '';
-  $('selfieInfo').textContent = 'Posisikan wajah Anda, lalu ambil foto.'; tampil('vSelfie');
+  tahap = 'idle'; foto = null; $('video').classList.add('hide');$('preview').classList.add('hide'); $('ph').classList.remove('hide');$('btnSelfie').textContent = 'Aktifkan Kamera'; $('btnSelfie').disabled = false; $('btnUlang').classList.add('hide'); $('errSelfie').textContent = '';$('selfieInfo').textContent = 'Posisikan wajah Anda, lalu ambil foto.'; tampil('vSelfie');
 }
 function tutupKamera() { if (streamCam) { streamCam.getTracks().forEach(t => t.stop()); streamCam = null; } }
 function aksiSelfie() {
   $('errSelfie').textContent = '';
   if (tahap === 'idle') {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(s => {
-      streamCam = s; $('video').srcObject = s; $('video').play(); $('video').classList.remove('hide'); $('ph').classList.add('hide');
+      streamCam = s; $('video').srcObject = s; $('video').play(); $('video').classList.remove('hide');$('ph').classList.add('hide');
       tahap = 'live'; $('btnSelfie').textContent = '📸 Ambil Foto';
     }).catch(() => { $('errSelfie').textContent = 'Kamera tidak bisa diakses. Pastikan izin kamera diaktifkan.'; });
   } else if (tahap === 'live') {
     if (!masihDiZona()) return;
-    const v = $('video'), c = $('canvasFoto'); c.width = v.videoWidth; c.height = v.videoHeight;
+    const v = $('video'), c =$('canvasFoto'); c.width = v.videoWidth; c.height = v.videoHeight;
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); foto = c.toDataURL('image/jpeg', 0.9);
-    $('preview').src = foto; $('preview').classList.remove('hide'); $('video').classList.add('hide'); tutupKamera();
-    tahap = 'preview'; $('btnSelfie').textContent = '✓ Gunakan Foto & Kirim Presensi'; $('btnUlang').classList.remove('hide');
-    $('selfieInfo').textContent = 'Foto diambil. Cek hasilnya sebelum kirim.';
+    $('preview').src = foto; $('preview').classList.remove('hide');$('video').classList.add('hide'); tutupKamera();
+    tahap = 'preview'; $('btnSelfie').textContent = '✓ Gunakan Foto & Kirim Presensi'; $('btnUlang').classList.remove('hide');$('selfieInfo').textContent = 'Foto diambil. Cek hasilnya sebelum kirim.';
   } else if (tahap === 'preview') {
     if (!masihDiZona()) return;
     $('btnSelfie').disabled = true; $('btnSelfie').textContent = 'Mengirim...';
@@ -306,15 +301,15 @@ function masihDiZona() {
 function ulangFoto() { bukaSelfie(); }
 
 // ===== Laporan harian (sore) =====
-function bukaLaporan() { $('jamKeluar').textContent = fmtJam(waktuScan) + ' WIB'; $('laporan').value = ''; $('errLaporan').textContent = ''; cekLaporan(); tampil('vLaporan'); }
+function bukaLaporan() { $('jamKeluar').textContent = fmtJam(waktuScan) + ' WIB'; $('laporan').value = '';$('errLaporan').textContent = ''; cekLaporan(); tampil('vLaporan'); }
 function cekLaporan() {
   const n = $('laporan').value.trim().length, ok = n >= 100;
-  $('cnt').classList.toggle('ok', ok); $('cntMsg').textContent = ok ? '✓ Memenuhi syarat min. 100 karakter' : 'Belum memenuhi syarat min. 100 karakter';
-  $('cntNum').textContent = n + ' / 500'; $('btnKirimLaporan').disabled = !ok;
+  $('cnt').classList.toggle('ok', ok);$('cntMsg').textContent = ok ? '✓ Memenuhi syarat min. 100 karakter' : 'Belum memenuhi syarat min. 100 karakter';
+  $('cntNum').textContent = n + ' / 500';$('btnKirimLaporan').disabled = !ok;
 }
 function kirimSore() {
   $('btnKirimLaporan').disabled = true; $('btnKirimLaporan').textContent = 'Mengirim...';
-  kirim({ uuid: ident.uuid, sesi: 'sore', lokasi: target.nama, waktu: fmtWaktu(waktuScan), deviceId, laporan: $('laporan').value.trim() }, $('errLaporan'),
+  kirim({ uuid: ident.uuid, sesi: 'sore', lokasi: target.nama, waktu: fmtWaktu(waktuScan), deviceId, laporan: $('laporan').value.trim() },$('errLaporan'),
     () => { $('btnKirimLaporan').textContent = '➤ Kirim Presensi Pulang'; cekLaporan(); });
 }
 
