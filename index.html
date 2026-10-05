@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presensi Prakerin</title>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--b1:#3b5bf0;--b2:#5b4de8;--nv:#1e2338;--gy:#64748b;--bd:#e6e8f0;--hj:#16a34a;--mr:#dc2626;--kn:#d97706;--bi:#2563eb}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;background:linear-gradient(160deg,#eef2ff,#f4f7fb 50%,#f6f1f8);min-height:100vh;display:flex;flex-direction:column;color:var(--nv)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:#fff;border-bottom:1px solid var(--bd)}
+.brand{font-size:16px;font-weight:800;color:var(--b1)}.brand span{color:#e53e3e}
+.konek{font-size:11px;color:var(--hj);font-weight:600}.konek.putus{color:var(--mr)}
+main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:22px 16px 30px}
+h1{font-size:22px;margin:0 0 4px}.sub{font-size:13px;color:var(--gy);margin:0 0 18px;line-height:1.5}
+.card{background:#fff;border-radius:20px;padding:20px;box-shadow:0 18px 36px -14px rgba(30,41,89,.22);margin-bottom:16px}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.back{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd);background:#fff;cursor:pointer;font-size:16px}
+.head h1{margin:0;font-size:19px}.jam{margin-left:auto;font-size:15px;font-weight:700;background:#f1f3f9;padding:6px 10px;border-radius:10px}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff;font:700 15px Inter,sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(59,91,240,.5);text-align:center}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.abu{background:#eef0f6;color:var(--nv);box-shadow:none;margin-top:8px}
+.btn-outline{width:100%;padding:13px;border:1.5px solid var(--bd);border-radius:14px;background:#fff;color:var(--nv);font:700 14px Inter,sans-serif;cursor:pointer;margin-top:10px}
+.btn-outline:disabled{opacity:.45;cursor:not-allowed}
+.btn small,.btn-outline small{display:block;font-weight:500;font-size:11px;opacity:.85;margin-top:2px}
+.hide{display:none!important}
+.info{font-size:12.5px;color:var(--gy);line-height:1.5;margin:0 0 12px}
+.notif{display:none;font-size:12.5px;padding:10px 12px;border-radius:12px;margin-bottom:12px;background:#eef2ff;color:var(--b1)}
+.notif.berhasil{display:block;background:#e7faf1;color:#0f7a3a}.notif.gagal{display:block;background:#fef2f2;color:var(--mr)}.notif.proses{display:block}
+.vp{position:relative;aspect-ratio:1/1;max-height:340px;width:100%;border-radius:18px;overflow:hidden;background:radial-gradient(#1b2035,#0b0e1a);display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;text-align:center;padding:20px}
+.vp video,.vp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vp.selfie video{transform:scaleX(-1)}
+.br{position:absolute;width:34px;height:34px;border:4px solid #4f7bff;pointer-events:none}
+.br.ok{border-color:#22c55e}
+.tl{top:16%;left:16%;border-right:0;border-bottom:0;border-radius:10px 0 0 0}.tr{top:16%;right:16%;border-left:0;border-bottom:0;border-radius:0 10px 0 0}
+.bl{bottom:16%;left:16%;border-right:0;border-top:0;border-radius:0 0 0 10px}.brr{bottom:16%;right:16%;border-left:0;border-top:0;border-radius:0 0 10px 0}
+.pill{display:table;margin:12px auto;font-size:11.5px;font-weight:600;color:var(--b1);background:#eef2ff;padding:6px 14px;border-radius:20px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.tile small{display:block;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.04em;text-transform:uppercase}
+.tile b{font:600 14px "Courier New",monospace}.tile b.baik{color:var(--hj)}.tile b.buruk{color:var(--mr)}
+.row{display:flex;justify-content:space-between;align-items:center;background:#f4f6fb;border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.row small{display:block;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase}.row b{font-size:17px}
+.tag{font-size:11px;font-weight:700;color:#0f7a3a;background:#e7faf1;border-radius:20px;padding:5px 10px}
+label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:8px}label em{font-style:normal;color:var(--mr);font-size:11.5px}
+textarea{width:100%;min-height:170px;border:1.5px solid var(--bd);border-radius:14px;padding:12px;font:14px Inter,sans-serif;resize:vertical}
+textarea:focus{outline:0;border-color:var(--b1)}
+.cnt{display:flex;justify-content:space-between;font-size:12px;margin:6px 0 12px;color:var(--mr)}.cnt.ok{color:var(--b1)}
+.warn{font-size:12px;background:#fef3e2;color:#9a5b0a;border-radius:12px;padding:10px 12px;margin-bottom:14px;line-height:1.5}
+.err{color:var(--mr);font-size:12.5px;margin-top:10px}
+.modal{position:fixed;inset:0;background:rgba(20,25,50,.45);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal.buka{display:flex}.box{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:400px;text-align:center;max-height:90vh;overflow-y:auto}
+.box h2{margin:0 0 16px;font-size:17px}
+.sesi{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sc{border:2px solid var(--bd);background:#f4f6fb;border-radius:16px;padding:16px 8px;cursor:pointer;font:inherit;color:var(--gy)}
+.sc.tersedia{border-color:var(--b1);background:#eef2ff;color:var(--nv)}
+.sc .ic{font-size:30px}.sc b{display:block;font-size:14px;margin:4px 0}.sc small{font-size:11px}.sc i{display:block;font-style:normal;font-size:10.5px;font-weight:700;color:#fff;background:var(--b1);border-radius:20px;padding:3px 8px;margin:8px auto 0;width:max-content}
+.cek{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#34d399,#16a34a);color:#fff;font-size:34px;line-height:64px;margin:0 auto 14px}
+.pro{display:flex;align-items:center;gap:12px;background:#f4f6fb;border-radius:14px;padding:12px;margin:16px 0;text-align:left}
+.pro .av{width:44px;height:44px;border-radius:10px;background:#dde1ee;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;flex-shrink:0}.av img{width:100%;height:100%;object-fit:cover}
+.pro b{display:block;font-size:14px}.pro small{font-size:11.5px;color:var(--gy)}
+footer{background:#141824;color:#94a3b8;font-size:11.5px;padding:14px 20px;display:flex;justify-content:space-between;border-top:3px solid;border-image:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e,#3b82f6,#8b5cf6) 1}
+@media(min-width:768px){main{max-width:620px;padding-top:34px}.card{padding:26px}}
+@media(max-width:767px){.jam{display:none}}
+
+/* ==== Baru: pilih peserta (autocomplete) ==== */
+.cari-wrap{position:relative}
+.saran{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 14px 28px -10px rgba(30,41,89,.2);max-height:260px;overflow-y:auto;z-index:30}
+.saran-item{padding:11px 14px;border-bottom:1px solid #f1f3f9;cursor:pointer}
+.saran-item:hover{background:#f8fafc}
+.saran-item b{display:block;font-size:13.5px}
+.saran-item small{font-size:11.5px;color:rgba(30,35,56,.55)}
+.saran-kosong{padding:12px 14px;font-size:12.5px;color:#94a3b8;text-align:center}
+.peserta-aktif{display:flex;justify-content:space-between;align-items:center;background:#eef2ff;border-radius:12px;padding:10px 14px;margin-top:10px}
+.peserta-aktif b{font-size:13.5px}.peserta-aktif small{display:block;font-size:11px;color:var(--gy)}
+.peserta-aktif button{border:0;background:none;color:var(--b1);font-weight:700;font-size:12px;cursor:pointer}
+
+/* ==== Baru: kalender ==== */
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cal-head b{font-size:14.5px}
+.nav-bulan button{width:26px;height:26px;border:1px solid var(--bd);border-radius:8px;background:#fff;cursor:pointer;margin-left:6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-dow{font-size:10.5px;color:#9aa1b4;font-weight:700;margin-bottom:4px}
+.cal-day{position:relative;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:12.5px;border-radius:8px;background:#f4f6fb}
+.cal-day i{position:absolute;bottom:2px;font-style:normal;font-size:9px;font-weight:800}
+.cal-day.st-hadir{background:#e7faf1}.cal-day.st-hadir i{color:var(--hj)}
+.cal-day.st-izin{background:#fef3e2}.cal-day.st-izin i{color:var(--kn)}
+.cal-day.st-sakit{background:#eaf1ff}.cal-day.st-sakit i{color:var(--bi)}
+.cal-day.st-alpha{background:#fef2f2;color:var(--mr)}.cal-day.st-alpha i{color:var(--mr)}
+.cal-day.st-perlu_acc{background:#fff7ed}.cal-day.st-perlu_acc i{color:#ea580c;font-size:12px}
+.cal-day.st-progres i{color:#94a3b8;font-size:12px}
+.legenda{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;font-size:10.5px;color:var(--gy)}
+.legenda .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.legenda .hadir{background:var(--hj)}.legenda .izin{background:var(--kn)}.legenda .sakit{background:var(--bi)}.legenda .alpha{background:var(--mr)}.legenda .acc{background:#ea580c}
+.tiles4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.tile4{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:12px;text-align:center}
+.tile4 b{display:block;font-size:20px}.tile4 small{font-size:11px;color:var(--gy)}
+.tile4 b.hijau{color:var(--hj)}.tile4 b.kuning{color:var(--kn)}.tile4 b.biru{color:var(--bi)}.tile4 b.merah{color:var(--mr)}
+
+/* ==== Baru: upload tugas ==== */
+.tugas-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f3f9}
+.tugas-item:last-child{border-bottom:0}
+.tugas-item b{display:block;font-size:13px}.tugas-item small{font-size:11px;color:var(--gy)}
+.tugas-item a{font-size:12px;font-weight:700;color:var(--b1);text-decoration:none}
+input[type=text],input[type=file]{width:100%;padding:11px 13px;border:1.5px solid var(--bd);border-radius:11px;font:14px Inter,sans-serif;background:#fafbfd;margin-bottom:4px}
+input[type=text]:focus{outline:0;border-color:var(--b1)}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="brand"><span>new</span> armada group</div><div class="konek" id="konek">Menghubungkan...</div></div>
+
+<main>
+  <!-- BERANDA -->
+  <section id="vBeranda">
+    <h1>Presensi Magang</h1>
+    <p class="sub">Rekap kehadiranmu, scan presensi, dan unggah tugas dari mentor.</p>
+
+    <div class="card">
+      <label style="margin-bottom:10px">Lihat sebagai peserta</label>
+      <div class="cari-wrap">
+        <input type="text" id="cariPeserta" placeholder="Ketik nama atau NIM/NISN..." autocomplete="off" oninput="cariPesertaDebounced()">
+        <div class="saran hide" id="saranPeserta"></div>
+      </div>
+      <div class="peserta-aktif hide" id="pesertaAktifBox">
+        <div><b id="paNama">-</b><small id="paDetail">-</small></div>
+        <button onclick="gantiPeserta()">Ganti</button>
+      </div>
+      <p class="info" id="pesertaKosongInfo" style="margin-top:10px">Pilih peserta dulu untuk melihat kalender & riwayat tugas. (Ini cuma untuk kebutuhan uji coba lokal -- di versi Laravel nanti, ini otomatis dari akun yang login.)</p>
+    </div>
+
+    <div id="blokKalender" class="hide">
+      <div class="card">
+        <div class="cal-head">
+          <b id="calJudul">-</b>
+          <div class="nav-bulan"><button onclick="gantiBulan(-1)">‹</button><button onclick="gantiBulan(1)">›</button></div>
+        </div>
+        <div class="cal-grid cal-dow"><span>S</span><span>S</span><span>R</span><span>K</span><span>J</span><span>S</span><span>M</span></div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="legenda">
+          <span><i class="dot hadir"></i>Hadir</span><span><i class="dot izin"></i>Izin</span>
+          <span><i class="dot sakit"></i>Sakit</span><span><i class="dot alpha"></i>Alpha</span>
+          <span><i class="dot acc"></i>Perlu ACC HRD (!)</span>
+        </div>
+      </div>
+      <div class="tiles4">
+        <div class="tile4"><b class="hijau" id="hitHadir">0</b><small>Hari Hadir</small></div>
+        <div class="tile4"><b class="kuning" id="hitIzin">0</b><small>Hari Izin</small></div>
+        <div class="tile4"><b class="biru" id="hitSakit">0</b><small>Hari Sakit</small></div>
+        <div class="tile4"><b class="merah" id="hitAlpha">0</b><small>Hari Alpha</small></div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="bukaSesi()">📷 Presensi Scan<small>Scan QR ID card untuk absen (pagi & sore)</small></button>
+    <button class="btn-outline" id="btnBukaUpload" onclick="bukaUpload()" disabled>📎 Upload Tugas<small>Kirim tugas dari mentor (img/pdf/doc, maks 2 MB)</small></button>
+
+    <div id="blokTugas" class="hide">
+      <div class="card" style="margin-top:16px">
+        <label style="margin-bottom:10px">Riwayat Tugas</label>
+        <div id="daftarTugas"><p class="info">Belum ada tugas diunggah.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCAN QR -->
+  <section id="vScan" class="hide">
+    <div class="head"><button class="back" onclick="batalScan()">←</button><h1>Scan QR</h1><div class="jam" id="jamLive">--:--:--</div></div>
+    <div class="card">
+      <p class="info">Hadapkan Kartu ID (QR) ke kamera untuk absen. Anda harus berada di salah satu zona absen yang terdaftar.</p>
+      <div class="notif" id="notif"></div>
+      <div class="vp"><video id="videoScan" playsinline muted></video><canvas id="canvasScan" class="hide"></canvas>
+        <i class="br tl" id="b1"></i><i class="br tr" id="b2"></i><i class="br bl" id="b3"></i><i class="br brr" id="b4"></i></div>
+      <div class="pill" id="scanStatus">Menyiapkan...</div>
+      <div class="tiles"><div class="tile"><small id="tJarakL">Jarak ke titik</small><b id="tJarak">-</b></div>
+      <div class="tile"><small>Akurasi GPS</small><b id="tAkurasi">-</b></div></div>
+    </div>
+  </section>
+
+  <!-- SELFIE (PAGI) -->
+  <section id="vSelfie" class="hide">
+    <div class="head"><button class="back" onclick="kembaliKeScan()">←</button><h1>Selfie Dokumentasi</h1></div>
+    <div class="card">
+      <p class="info">Ambil foto selfie untuk menyelesaikan absen. Anda harus tetap berada di zona absen saat mengambil foto.</p>
+      <div class="vp selfie" id="vpSelfie"><video id="video" playsinline muted class="hide"></video><img id="preview" class="hide" alt="">
+        <span id="ph">Tekan tombol di bawah untuk mengaktifkan kamera.</span></div>
+      <p class="info" id="selfieInfo" style="text-align:center;margin:10px 0">Posisikan wajah Anda, lalu ambil foto.</p>
+      <button class="btn" id="btnSelfie" onclick="aksiSelfie()">Aktifkan Kamera</button>
+      <button class="btn abu hide" id="btnUlang" onclick="ulangFoto()">Ulangi Foto</button>
+      <canvas id="canvasFoto" class="hide"></canvas>
+      <div class="err" id="errSelfie"></div>
+    </div>
+  </section>
+
+  <!-- LAPORAN HARIAN (SORE) -->
+  <section id="vLaporan" class="hide">
+    <div class="head"><button class="back" onclick="kembaliKeScan()">←</button><h1>Presensi Keluar</h1></div>
+    <div class="card">
+      <div class="row"><div><small>Jam keluar</small><b id="jamKeluar">--:--:--</b></div><span class="tag">● QR Terverifikasi</span></div>
+      <label>Catatan Kegiatan Harian <em>* Wajib (Min. 100 karakter)</em></label>
+      <textarea id="laporan" maxlength="500" placeholder="Masukkan kegiatan harian" oninput="cekLaporan()"></textarea>
+      <div class="cnt" id="cnt"><span id="cntMsg">Belum memenuhi syarat min. 100 karakter</span><span id="cntNum">0 / 500</span></div>
+      <div class="warn">Laporan kegiatan harian ini akan diverifikasi oleh <b>Mentor Divisi</b> sebagai syarat persetujuan jam kehadiran harian.</div>
+      <button class="btn" id="btnKirimLaporan" onclick="kirimSore()" disabled>➤ Kirim Presensi Pulang</button>
+      <div class="err" id="errLaporan"></div>
+    </div>
+  </section>
+</main>
+
+<footer><span><b style="color:#ef4444">new armada group</b> &nbsp;|&nbsp; Portal Resmi Pendaftaran Prakerin</span><span>© 2026 PT Mekar Armada Jaya</span></footer>
+
+<!-- POPUP PILIH SESI -->
+<div class="modal" id="mSesi" onclick="if(event.target===this)tutupSesi()"><div class="box">
+  <h2>Silahkan pilih sesuai dengan jam</h2>
+  <div class="sesi">
+    <button class="sc" id="scPagi" onclick="pilihSesi('pagi')"><div class="ic">☀️</div><b>Presensi Pagi</b><small>06.00 - 13.00</small><i id="tagPagi" class="hide">Tersedia</i></button>
+    <button class="sc" id="scSore" onclick="pilihSesi('sore')"><div class="ic">🌙</div><b>Presensi Sore</b><small>13.00 - 18.00</small><i id="tagSore" class="hide">Tersedia</i></button>
+  </div>
+  <p class="info" style="margin:12px 0 0">Di luar jam tersebut (mis. departemen dengan shift berbeda), presensi tetap tercatat dan menunggu persetujuan HRD.</p>
+</div></div>
+
+<!-- POPUP BERHASIL (presensi) -->
+<div class="modal" id="mOk"><div class="box">
+  <div class="cek">✓</div><h2 style="margin-bottom:6px">Presensi Berhasil Tercatat</h2>
+  <p class="info" style="margin:0">Kehadiranmu hari ini sudah berhasil dicatat oleh sistem.</p>
+  <div class="pro"><div class="av" id="okAv">FOTO</div><div><b id="okNama">-</b><small id="okWaktu">-</small></div></div>
+  <button class="btn" onclick="selesai()">Selesai</button>
+</div></div>
+
+<!-- POPUP UPLOAD TUGAS -->
+<div class="modal" id="mUpload" onclick="if(event.target===this)tutupUpload()"><div class="box">
+  <h2>Upload Tugas</h2>
+  <p class="info" style="text-align:left">Mengunggah sebagai: <b id="upNama">-</b>. Jenis file: JPG, PNG, PDF, DOC, DOCX. Maksimal 2 MB.</p>
+  <input type="file" id="fileTugas" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" onchange="cekFileTugas()">
+  <div class="err" id="errUpload"></div>
+  <button class="btn" id="btnKirimTugas" onclick="kirimTugas()" disabled style="margin-top:10px">Unggah Tugas</button>
+  <button class="btn abu" onclick="tutupUpload()" style="margin-top:8px">Batal</button>
+</div></div>
+
+<script>
+// ===== KONFIGURASI =====
+// GANTI dengan URL tunnel yang sedang aktif (harus sama dengan di qr-generator.html).
+const URL_SERVER = 'https://competitive-with-namespace-usd.trycloudflare.com';
+const DAFTAR_POS = [
+  { nama: 'Pos 1', lat: -7.5062152, lng: 110.2247733, radius: 35 },
+  { nama: 'Pos 2', lat: -7.5043105, lng: 110.2265946, radius: 79 },
+  { nama: 'Pos 3', lat: -7.5021834, lng: 110.2286008, radius: 43 },
+  { nama: 'Pos 4', lat: -7.5021392, lng: 110.2271552, radius: 24 },
+  { nama: 'Uji coba', lat: -7.5051948, lng: 110.2254398, radius: 10 }
+];
+// Jendela sesi (sesuai update HRD terbaru) -- harus SAMA dengan JENDELA_SESI di server.js.
+const SESI = { pagi: { mulai: 6, selesai: 13 }, sore: { mulai: 13, selesai: 18 } };
+const MAX_AKURASI = 7, BATAS_TUNGGU_MS = 6000, SMOOTH = 0.4;
+const MAKS_UKURAN_TUGAS = 2 * 1024 * 1024;
+
+const $ = id => document.getElementById(id);
+const p2 = n => String(n).padStart(2, '0');
+const fmtWaktu = d => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+const fmtJam = d => `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+let deviceId = localStorage.getItem('absen_device_id');
+if (!deviceId) { deviceId = 'dev_' + Math.random().toString(36).substring(2, 10); localStorage.setItem('absen_device_id', deviceId); }
+
+// ===== Status koneksi & jam =====
+function cekKoneksi() {
+  const k = new AbortController(); const t = setTimeout(() => k.abort(), 4000);
+  fetch(URL_SERVER + '/ping', { signal: k.signal }).then(r => r.json()).then(() => {
+    clearTimeout(t); $('konek').textContent = '● Terhubung ke server'; $('konek').classList.remove('putus');
+  }).catch(() => { clearTimeout(t); $('konek').textContent = '● Server terputus'; $('konek').classList.add('putus'); });
+}
+cekKoneksi(); setInterval(cekKoneksi, 7000);
+setInterval(() => { if ($('jamLive')) $('jamLive').textContent = fmtJam(new Date()); }, 1000);
+
+// ===== Navigasi tampilan =====
+function tampil(id) { ['vBeranda','vScan','vSelfie','vLaporan'].forEach(v => $(v).classList.toggle('hide', v !== id)); }
+
+// ============ BARU: PILIH PESERTA (untuk lihat kalender & tugas) ============
+let pesertaAktif = null; // { nomorInduk, nama, divisi }
+let timerCariPeserta = null;
+
+function cariPesertaDebounced() {
+  clearTimeout(timerCariPeserta);
+  const q = $('cariPeserta').value.trim();
+  if (!q) { $('saranPeserta').classList.add('hide'); return; }
+  timerCariPeserta = setTimeout(() => cariPeserta(q), 300);
+}
+function cariPeserta(q) {
+  fetch(URL_SERVER + '/cari-anak-magang?q=' + encodeURIComponent(q))
+    .then(r => r.json()).then(d => {
+      const el = $('saranPeserta');
+      if (!d.ok || !d.hasil || d.hasil.length === 0) {
+        el.innerHTML = '<div class="saran-kosong">Tidak ditemukan</div>';
+      } else {
+        el.innerHTML = d.hasil.map(o => `
+          <div class="saran-item" onclick='pilihPeserta(${JSON.stringify(o)})'>
+            <b>${o.nama || '-'}</b><small>${o.nomorInduk} &bull; ${o.divisi || '-'}</small>
+          </div>`).join('');
+      }
+      el.classList.remove('hide');
+    }).catch(() => { $('saranPeserta').classList.add('hide'); });
+}
+function pilihPeserta(o) {
+  pesertaAktif = o;
+  $('saranPeserta').classList.add('hide'); $('cariPeserta').value = '';
+  $('pesertaAktifBox').classList.remove('hide'); $('pesertaKosongInfo').classList.add('hide');
+  $('paNama').textContent = o.nama; $('paDetail').textContent = `${o.nomorInduk} • ${o.divisi || '-'}`;
+  $('btnBukaUpload').disabled = false;
+  $('blokKalender').classList.remove('hide'); $('blokTugas').classList.remove('hide');
+  bulanDilihat = new Date();
+  muatKalender(); muatRiwayatTugas();
+}
+function gantiPeserta() {
+  pesertaAktif = null;
+  $('pesertaAktifBox').classList.add('hide'); $('pesertaKosongInfo').classList.remove('hide');
+  $('btnBukaUpload').disabled = true;
+  $('blokKalender').classList.add('hide'); $('blokTugas').classList.add('hide');
+}
+document.addEventListener('click', e => { if (!e.target.closest('.cari-wrap')) $('saranPeserta').classList.add('hide'); });
+
+// ============ BARU: KALENDER ============
+let bulanDilihat = new Date();
+function gantiBulan(delta) { bulanDilihat.setMonth(bulanDilihat.getMonth() + delta); muatKalender(); }
+function muatKalender() {
+  if (!pesertaAktif) return;
+  const bulanStr = `${bulanDilihat.getFullYear()}-${p2(bulanDilihat.getMonth() + 1)}`;
+  $('calJudul').textContent = `${BULAN[bulanDilihat.getMonth()]} ${bulanDilihat.getFullYear()}`;
+
+  fetch(`${URL_SERVER}/riwayat-presensi?nomorInduk=${encodeURIComponent(pesertaAktif.nomorInduk)}&bulan=${bulanStr}`)
+    .then(r => r.json()).then(d => {
+      if (!d.ok) return;
+      $('hitHadir').textContent = d.hitung.hadir; $('hitIzin').textContent = d.hitung.izin;
+      $('hitSakit').textContent = d.hitung.sakit; $('hitAlpha').textContent = d.hitung.alpha;
+
+      const tgl1 = new Date(bulanDilihat.getFullYear(), bulanDilihat.getMonth(), 1);
+      const offset = (tgl1.getDay() + 6) % 7; // Senin = 0
+      let html = '';
+      for (let i = 0; i < offset; i++) html += '<span></span>';
+      Object.keys(d.hari).sort().forEach(key => {
+        const info = d.hari[key]; const tanggal = Number(key.slice(-2));
+        html += `<span class="cal-day st-${info.kode}">${tanggal}<i>${info.tanda}</i></span>`;
+      });
+      $('calGrid').innerHTML = html;
+    }).catch(() => {});
+}
+
+// ============ BARU: UPLOAD TUGAS ============
+function bukaUpload() {
+  if (!pesertaAktif) return;
+  $('upNama').textContent = `${pesertaAktif.nama} (${pesertaAktif.nomorInduk})`;
+  $('fileTugas').value = ''; $('errUpload').textContent = ''; $('btnKirimTugas').disabled = true;
+  $('mUpload').classList.add('buka');
+}
+function tutupUpload() { $('mUpload').classList.remove('buka'); }
+function cekFileTugas() {
+  const f = $('fileTugas').files[0]; $('errUpload').textContent = '';
+  if (!f) { $('btnKirimTugas').disabled = true; return; }
+  if (f.size > MAKS_UKURAN_TUGAS) {
+    $('errUpload').textContent = `File terlalu besar (${(f.size/1024/1024).toFixed(2)} MB). Maksimal 2 MB.`;
+    $('btnKirimTugas').disabled = true; return;
+  }
+  $('btnKirimTugas').disabled = false;
+}
+function kirimTugas() {
+  const f = $('fileTugas').files[0];
+  if (!f || !pesertaAktif) return;
+  $('btnKirimTugas').disabled = true; $('btnKirimTugas').textContent = 'Mengunggah...';
+
+  const fd = new FormData();
+  fd.append('nomorInduk', pesertaAktif.nomorInduk);
+  fd.append('file', f);
+
+  fetch(URL_SERVER + '/upload-tugas', { method: 'POST', body: fd })
+    .then(r => r.json()).then(d => {
+      $('btnKirimTugas').disabled = false; $('btnKirimTugas').textContent = 'Unggah Tugas';
+      if (!d.ok) { $('errUpload').textContent = d.pesan || 'Gagal mengunggah.'; return; }
+      tutupUpload(); muatRiwayatTugas();
+    }).catch(() => {
+      $('btnKirimTugas').disabled = false; $('btnKirimTugas').textContent = 'Unggah Tugas';
+      $('errUpload').textContent = 'Tidak bisa terhubung ke server.';
+    });
+}
+function muatRiwayatTugas() {
+  if (!pesertaAktif) return;
+  fetch(`${URL_SERVER}/riwayat-tugas?nomorInduk=${encodeURIComponent(pesertaAktif.nomorInduk)}`)
+    .then(r => r.json()).then(d => {
+      const el = $('daftarTugas');
+      if (!d.ok || !d.daftar || d.daftar.length === 0) { el.innerHTML = '<p class="info">Belum ada tugas diunggah.</p>'; return; }
+      el.innerHTML = d.daftar.map(t => `
+        <div class="tugas-item">
+          <div><b>${t.namaFileAsli}</b><small>${t.waktuUpload} &bull; ${t.ukuranKb} KB</small></div>
+          <a href="${URL_SERVER}/tugas-file/${encodeURIComponent(t.namaFileDisimpan)}" target="_blank" rel="noopener">Buka</a>
+        </div>`).join('');
+    }).catch(() => {});
+}
+
+// ===== Popup sesi =====
+let sesiAktif = null;
+function dalamJam(k) { const d = new Date(), h = d.getHours() + d.getMinutes() / 60; return h >= SESI[k].mulai && h < SESI[k].selesai; }
+function bukaSesi() {
+  ['pagi','sore'].forEach(k => { const a = dalamJam(k); $('sc' + (k==='pagi'?'Pagi':'Sore')).classList.toggle('tersedia', a); $('tag' + (k==='pagi'?'Pagi':'Sore')).classList.toggle('hide', !a); });
+  $('mSesi').classList.add('buka');
+}
+function tutupSesi() { $('mSesi').classList.remove('buka'); }
+function pilihSesi(k) {
+  sesiAktif = k; tutupSesi(); tampil('vScan');
+  $('scanStatus').textContent = 'Meminta izin lokasi...';
+  const lanjut = () => { mulaiTracking(); mulaiScan(); };
+  navigator.geolocation.getCurrentPosition(lanjut, lanjut, { enableHighAccuracy: true, timeout: 8000 });
+}
+
+// ===== GPS =====
+let userLat = null, userLng = null, akurasi = null, bufer = null, watchId = null, tileTimer = null;
+function jarak(a, b, c, d) {
+  const R = 6371e3, x = (c-a)*Math.PI/180, y = (d-b)*Math.PI/180;
+  const h = Math.sin(x/2)**2 + Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+}
+const cm = m => `${(m*100).toFixed(0)} cm`;
+function posTerdekat() {
+  if (userLat === null) return null; let t = null;
+  for (const p of DAFTAR_POS) { const j = jarak(p.lat, p.lng, userLat, userLng); if (!t || j < t.jarak) t = { pos: p, jarak: j }; }
+  return t;
+}
+function mulaiTracking() {
+  if (watchId !== null || !navigator.geolocation) return;
+  watchId = navigator.geolocation.watchPosition(pos => {
+    const now = Date.now(), a = pos.coords.accuracy;
+    if (!bufer || now - bufer.t > 10000 || a < bufer.a) bufer = { a, t: now };
+    akurasi = bufer.a;
+    if (userLat === null) { userLat = pos.coords.latitude; userLng = pos.coords.longitude; }
+    else { userLat += SMOOTH * (pos.coords.latitude - userLat); userLng += SMOOTH * (pos.coords.longitude - userLng); }
+  }, e => console.warn('GPS:', e.message), { enableHighAccuracy: true, timeout: 3000, maximumAge: 700 });
+}
+function perbaruiTile() {
+  const t = posTerdekat();
+  if (t) { $('tJarakL').textContent = 'Jarak ke ' + t.pos.nama; $('tJarak').textContent = cm(t.jarak); $('tJarak').className = t.jarak <= t.pos.radius ? 'baik' : ''; }
+  if (akurasi !== null) { const ok = akurasi <= MAX_AKURASI; $('tAkurasi').textContent = akurasi.toFixed(1) + ' m' + (ok ? '' : ' (Kurang)'); $('tAkurasi').className = ok ? 'baik' : 'buruk'; }
+}
+
+// ===== Scan QR =====
+let streamScan = null, scanning = false, memproses = false, target = null, ident = null, waktuScan = null;
+function notif(jenis, teks) { $('notif').className = 'notif ' + jenis; $('notif').textContent = teks; }
+function bracket(ok) { ['b1','b2','b3','b4'].forEach(i => $(i).classList.toggle('ok', ok)); }
+function mulaiScan() {
+  scanning = true; memproses = false; bracket(false); $('notif').className = 'notif';
+  clearInterval(tileTimer); tileTimer = setInterval(perbaruiTile, 500);
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }).then(s => {
+    streamScan = s; $('videoScan').srcObject = s; $('videoScan').play(); $('scanStatus').textContent = 'Arahkan Kartu ID ke kamera...'; requestAnimationFrame(frame);
+  }).catch(() => { $('scanStatus').textContent = 'Kamera tidak bisa diakses. Aktifkan izin kamera.'; });
+}
+function stopStreamScan() { if (streamScan) { streamScan.getTracks().forEach(t => t.stop()); streamScan = null; } }
+function frame() {
+  if (!scanning) return;
+  const v = $('videoScan');
+  if (v.readyState === v.HAVE_ENOUGH_DATA && !memproses) {
+    const c = $('canvasScan'); c.width = v.videoWidth; c.height = v.videoHeight;
+    const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0, c.width, c.height);
+    const d = x.getImageData(0, 0, c.width, c.height);
+    const k = jsQR(d.data, d.width, d.height, { inversionAttempts: 'dontInvert' });
+    if (k && k.data) { memproses = true; prosesQR(String(k.data).trim()); }
+  }
+  requestAnimationFrame(frame);
+}
+function ulangScan(pesan, ms) { notif('gagal', pesan); setTimeout(() => { $('notif').className = 'notif'; memproses = false; $('scanStatus').textContent = 'Arahkan Kartu ID ke kamera...'; }, ms); }
+function prosesQR(uuid) {
+  if (!uuid) return ulangScan('Kartu ID tidak terbaca dengan benar.', 2200);
+  notif('proses', 'Kartu ID terbaca. Memastikan identitas & lokasi Anda...'); $('scanStatus').textContent = 'Memvalidasi...';
+  const mulai = Date.now();
+  const cek = setInterval(() => {
+    const cukup = userLat !== null && akurasi !== null && akurasi <= MAX_AKURASI;
+    if (cukup || Date.now() - mulai > BATAS_TUNGGU_MS) { clearInterval(cek); validasi(uuid, cukup); }
+  }, 400);
+}
+function validasi(uuid, cukup) {
+  if (userLat === null) return ulangScan('Lokasi GPS tidak ditemukan. Coba lagi.', 2400);
+  if (!cukup) return ulangScan(`Akurasi GPS kurang baik (${akurasi.toFixed(1)} m). Coba lagi di tempat lebih terbuka.`, 2600);
+  const t = posTerdekat();
+  if (!t || t.jarak > t.pos.radius) return ulangScan('Anda tidak berada di salah satu zona absen yang terdaftar.', 2600);
+  fetch(URL_SERVER + '/verifikasi-uuid', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uuid }) })
+    .then(r => r.json()).then(d => {
+      if (!d.valid) return ulangScan(d.pesan || 'Kartu ID tidak dikenali.', 2600);
+      ident = { uuid, nama: d.nama, nim: d.nomorInduk, divisi: d.divisi };
+      target = t.pos; waktuScan = new Date(); scanning = false; bracket(true);
+      notif('berhasil', `Absen berhasil, ${d.nama.toUpperCase()}! Lokasi: ${t.pos.nama}.`);
+      setTimeout(() => { stopStreamScan(); clearInterval(tileTimer); sesiAktif === 'pagi' ? bukaSelfie() : bukaLaporan(); }, 1400);
+    }).catch(() => ulangScan('Tidak bisa menghubungi server untuk verifikasi.', 2600));
+}
+function batalScan() { scanning = false; stopStreamScan(); clearInterval(tileTimer); tampil('vBeranda'); }
+function kembaliKeScan() { tutupKamera(); ident = null; target = null; tampil('vScan'); mulaiScan(); }
+
+// ===== Selfie (pagi) =====
+let streamCam = null, foto = null, tahap = 'idle';
+function bukaSelfie() {
+  tahap = 'idle'; foto = null; $('video').classList.add('hide'); $('preview').classList.add('hide'); $('ph').classList.remove('hide');
+  $('btnSelfie').textContent = 'Aktifkan Kamera'; $('btnSelfie').disabled = false; $('btnUlang').classList.add('hide'); $('errSelfie').textContent = '';
+  $('selfieInfo').textContent = 'Posisikan wajah Anda, lalu ambil foto.'; tampil('vSelfie');
+}
+function tutupKamera() { if (streamCam) { streamCam.getTracks().forEach(t => t.stop()); streamCam = null; } }
+function aksiSelfie() {
+  $('errSelfie').textContent = '';
+  if (tahap === 'idle') {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(s => {
+      streamCam = s; $('video').srcObject = s; $('video').play(); $('video').classList.remove('hide'); $('ph').classList.add('hide');
+      tahap = 'live'; $('btnSelfie').textContent = '📸 Ambil Foto';
+    }).catch(() => { $('errSelfie').textContent = 'Kamera tidak bisa diakses. Pastikan izin kamera diaktifkan.'; });
+  } else if (tahap === 'live') {
+    if (!masihDiZona()) return;
+    const v = $('video'), c = $('canvasFoto'); c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); foto = c.toDataURL('image/jpeg', 0.9);
+    $('preview').src = foto; $('preview').classList.remove('hide'); $('video').classList.add('hide'); tutupKamera();
+    tahap = 'preview'; $('btnSelfie').textContent = '✓ Gunakan Foto & Kirim Presensi'; $('btnUlang').classList.remove('hide');
+    $('selfieInfo').textContent = 'Foto diambil. Cek hasilnya sebelum kirim.';
+  } else if (tahap === 'preview') {
+    if (!masihDiZona()) return;
+    $('btnSelfie').disabled = true; $('btnSelfie').textContent = 'Mengirim...';
+    kirim({ uuid: ident.uuid, sesi: 'pagi', lokasi: target.nama, waktu: fmtWaktu(new Date()), deviceId, fotoBase64: foto }, $('errSelfie'), () => { $('btnSelfie').disabled = false; $('btnSelfie').textContent = '✓ Gunakan Foto & Kirim Presensi'; });
+  }
+}
+function masihDiZona() {
+  const j = jarak(target.lat, target.lng, userLat, userLng);
+  if (j > target.radius) { $('errSelfie').textContent = `Kamu sudah keluar dari zona absen (jarak ${cm(j)}). Ulangi dari scan QR.`; return false; }
+  return true;
+}
+function ulangFoto() { bukaSelfie(); }
+
+// ===== Laporan harian (sore) =====
+function bukaLaporan() { $('jamKeluar').textContent = fmtJam(waktuScan) + ' WIB'; $('laporan').value = ''; $('errLaporan').textContent = ''; cekLaporan(); tampil('vLaporan'); }
+function cekLaporan() {
+  const n = $('laporan').value.trim().length, ok = n >= 100;
+  $('cnt').classList.toggle('ok', ok); $('cntMsg').textContent = ok ? '✓ Memenuhi syarat min. 100 karakter' : 'Belum memenuhi syarat min. 100 karakter';
+  $('cntNum').textContent = n + ' / 500'; $('btnKirimLaporan').disabled = !ok;
+}
+function kirimSore() {
+  $('btnKirimLaporan').disabled = true; $('btnKirimLaporan').textContent = 'Mengirim...';
+  kirim({ uuid: ident.uuid, sesi: 'sore', lokasi: target.nama, waktu: fmtWaktu(waktuScan), deviceId, laporan: $('laporan').value.trim() }, $('errLaporan'),
+    () => { $('btnKirimLaporan').textContent = '➤ Kirim Presensi Pulang'; cekLaporan(); });
+}
+
+// ===== Kirim ke server + popup berhasil =====
+function kirim(payload, elErr, gagal) {
+  fetch(URL_SERVER + '/simpan-absen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    .then(r => r.json()).then(d => {
+      if (!d.ok) { elErr.textContent = 'Gagal: ' + (d.pesan || 'tidak diketahui'); return gagal(); }
+      const w = new Date(payload.waktu.replace(' ', 'T'));
+      $('okNama').textContent = ident.nama;
+      $('okWaktu').textContent = `Tercatat ${w.getDate()} ${BULAN[w.getMonth()]} ${w.getFullYear()}, ${p2(w.getHours())}:${p2(w.getMinutes())} WIB`;
+      $('okAv').innerHTML = payload.fotoBase64 ? `<img src="${payload.fotoBase64}" alt="">` : 'FOTO';
+      $('mOk').classList.add('buka');
+    }).catch(() => { elErr.textContent = 'Tidak bisa terhubung ke server (cek tunnel masih aktif?).'; gagal(); });
+}
+function selesai() {
+  $('mOk').classList.remove('buka'); tutupKamera(); ident = null; target = null; foto = null; tampil('vBeranda');
+  if (pesertaAktif) muatKalender(); // refresh kalau yang baru absen = peserta yang sedang dilihat
+}
+</script>
+</body>
+</html>
