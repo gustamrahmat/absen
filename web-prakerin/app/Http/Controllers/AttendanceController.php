@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LogPerubahanStatus;
 use App\Models\SesiPresensi;
 use App\Models\Tugas;
+use App\Services\KalenderKerja;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -19,11 +20,13 @@ class AttendanceController extends Controller
 {
     // Aturan (jendela waktu, hari kerja, titik pos, batas akurasi) ada di config/prakerin.php.
 
-    // Apakah tanggal ini hari kerja? (Senin-Jumat dan bukan tanggal libur di config)
+    // Apakah tanggal ini hari kerja WAJIB? Aturannya ada di App\Services\KalenderKerja:
+    // hari kerja pengganti > hari libur (tabel hari_libur) > Senin-Jumat.
+    // Di luar hari kerja (Sabtu, Minggu, libur) presensi TETAP boleh, tapi tidak wajib dan
+    // selalu menunggu persetujuan admin (lihat simpan() dan tentukanStatusHari()).
     public static function hariKerja(Carbon $tanggal): bool
     {
-        return in_array($tanggal->dayOfWeekIso, config('prakerin.hari_kerja'), true)
-            && ! in_array($tanggal->toDateString(), config('prakerin.libur'), true);
+        return KalenderKerja::hariKerja($tanggal);
     }
 
     // ============ HALAMAN: KALENDER REKAP + TOMBOL SCAN + UPLOAD TUGAS ============
@@ -66,7 +69,7 @@ class AttendanceController extends Controller
                 $logStatusBulanIni->get($key),
                 $tanggalMulai
             );
-            $hariDalamBulan[$key] = $status;
+            $hariDalamBulan[$key] = $status + ['catatan' => KalenderKerja::catatan($tgl)]; // catatan = nama libur / hari pengganti
 
             if (array_key_exists($status['kode'], $hitung)) {
                 $hitung[$status['kode']]++;
@@ -83,11 +86,14 @@ class AttendanceController extends Controller
 
         $riwayatTugas = Tugas::where('user_id', $user->id)->latest()->limit(5)->get();
 
-        return view('presensi.index', compact('bulan', 'hariDalamBulan', 'hitung', 'laporanTertunda', 'riwayatTugas'));
+        $daftarLibur = KalenderKerja::daftarRentang($awal, $akhir);
+
+        return view('presensi.index', compact('bulan', 'hariDalamBulan', 'hitung', 'laporanTertunda', 'riwayatTugas', 'daftarLibur'));
     }
 
     // Menentukan status satu hari untuk kalender.
-    // Prioritas: status manual HRD (log_perubahan_status) > hari libur > kelengkapan sesi > kosong/alpha.
+    // Prioritas: status manual HRD (log_perubahan_status) > ada/tidaknya presensi > kelengkapan sesi.
+    // Tanda: ✓ lengkap & sah | … hari berjalan (sudah pagi, belum sore) | ! hanya 1 sesi | ⏳ lengkap tapi menunggu admin | ✕ alpha/ditolak.
     private function tentukanStatusHari(Carbon $tanggal, Collection $sesiHari, $logStatus, ?Carbon $tanggalMulai): array
     {
         if ($logStatus) {
@@ -97,57 +103,66 @@ class AttendanceController extends Controller
             return ['kode' => $logStatus->status_baru, 'tanda' => $tandaManual];
         }
 
-        // Akhir pekan / libur tanpa presensi: bukan alpha.
-        if (! self::hariKerja($tanggal) && $sesiHari->isEmpty()) {
-            return ['kode' => 'libur', 'tanda' => ''];
+        $wajib = self::hariKerja($tanggal); // false = Sabtu/Minggu/libur (presensi opsional, selalu menunggu admin)
+
+        // Tidak ada presensi sama sekali.
+        if ($sesiHari->isEmpty()) {
+            if (! $wajib) {
+                // Libur terdaftar diberi warna sendiri; akhir pekan biasa tetap polos. Keduanya bukan alpha.
+                return ['kode' => KalenderKerja::namaLibur($tanggal) ? 'libur_resmi' : 'libur', 'tanda' => ''];
+            }
+            if ($tanggal->isFuture() || $tanggal->isToday()) {
+                return ['kode' => 'kosong', 'tanda' => ''];
+            }
+            if ($tanggalMulai === null || $tanggal->lt($tanggalMulai)) {
+                return ['kode' => 'kosong', 'tanda' => ''];
+            }
+            return ['kode' => 'alpha', 'tanda' => '✕'];
         }
 
-        // Ada presensi yang ditolak HRD -> alpha.
+        // Ditolak admin: hari kerja -> alpha; hari tidak wajib -> abu-abu, bukan alpha.
         if ($sesiHari->contains('status_persetujuan', 'ditolak')) {
-            return ['kode' => 'alpha', 'tanda' => '✕'];
+            return $wajib ? ['kode' => 'alpha', 'tanda' => '✕'] : ['kode' => 'ditolak', 'tanda' => '✕'];
         }
 
         $adaPagi = $sesiHari->contains('sesi', 'pagi');
         $adaSore = $sesiHari->contains('sesi', 'sore');
 
+        // Pagi + sore lengkap. Semua sesuai waktu (auto) atau sudah disetujui admin -> langsung ✓.
+        // Masih ada yang 'menunggu' (di luar jam sesi / hari tidak wajib) -> ⏳ sampai admin memutuskan.
         if ($adaPagi && $adaSore) {
+            return $sesiHari->contains('status_persetujuan', 'menunggu')
+                ? ['kode' => 'menunggu', 'tanda' => '⏳']
+                : ['kode' => 'hadir', 'tanda' => '✓'];
+        }
+
+        // Hanya 1 sesi. Admin sudah menyetujui (mis. izin setengah hari) -> ✓.
+        if ($sesiHari->contains('status_persetujuan', 'disetujui')) {
             return ['kode' => 'hadir', 'tanda' => '✓'];
         }
 
-        if ($adaPagi || $adaSore) {
-            // Hanya 1 sesi, tapi HRD sudah menyetujui -> dianggap hadir.
-            if ($sesiHari->contains('status_persetujuan', 'disetujui')) {
-                return ['kode' => 'hadir', 'tanda' => '✓'];
-            }
-            $jamSoreTutup = $tanggal->copy()->setTime(config('prakerin.jendela.sore.selesai'), 0);
-            if ($tanggal->isToday() && now()->lt($jamSoreTutup)) {
-                return ['kode' => 'progres', 'tanda' => '…']; // baru 1 sesi, hari masih berjalan
-            }
-            return ['kode' => 'perlu_acc', 'tanda' => '!']; // izin setengah hari / lupa 1 sesi -> menunggu HRD
+        // Hanya sore: pagi sudah lewat (jendela sore mulai saat jendela pagi tutup) -> izin setengah hari / lupa pagi.
+        if ($adaSore) {
+            return ['kode' => 'satu_sesi', 'tanda' => '!'];
         }
 
-        if ($tanggal->isFuture() || $tanggal->isToday()) {
-            return ['kode' => 'kosong', 'tanda' => ''];
+        // Hanya pagi: selama hari berjalan (sebelum sesi sore tutup) -> … ; setelah itu sore terlewat -> !
+        $jamSoreTutup = $tanggal->copy()->setTime(config('prakerin.jendela.sore.selesai'), 0);
+        if ($tanggal->isToday() && now()->lt($jamSoreTutup)) {
+            return ['kode' => 'progres', 'tanda' => '…'];
         }
-
-        if ($tanggalMulai === null || $tanggal->lt($tanggalMulai)) {
-            return ['kode' => 'kosong', 'tanda' => ''];
-        }
-
-        return ['kode' => 'alpha', 'tanda' => '✕'];
+        return ['kode' => 'satu_sesi', 'tanda' => '!'];
     }
 
     // ============ HALAMAN: SCAN ============
     public function scan()
     {
-        if (! self::hariKerja(now())) {
-            return redirect()->route('presensi.index')
-                ->with('info', 'Hari ini bukan hari kerja, presensi tidak dibuka.');
-        }
-
+        // Presensi dibuka setiap hari. Di luar hari kerja halaman hanya menampilkan pemberitahuan.
         return view('presensi.scan', [
             'posisi' => config('prakerin.pos'),
             'jendela' => config('prakerin.jendela'),
+            'hariWajib' => self::hariKerja(now()),
+            'catatanHari' => KalenderKerja::catatan(now()),
         ]);
     }
 
@@ -174,7 +189,7 @@ class AttendanceController extends Controller
     }
 
     // ============ API: SIMPAN HASIL PRESENSI (1 sesi) ============
-    // Semua aturan dicek ULANG di server (hari kerja, kartu, lokasi, akurasi, sesi ganda, foto).
+    // Semua aturan dicek ULANG di server (kartu, lokasi, akurasi, sesi ganda, foto).
     // Jam absen = jam server, bukan jam dari peramban.
     public function simpan(Request $request)
     {
@@ -195,10 +210,9 @@ class AttendanceController extends Controller
         $data = $validator->validated();
         $sekarang = now();
 
-        // 1) Hari kerja
-        if (! self::hariKerja($sekarang)) {
-            return response()->json(['ok' => false, 'pesan' => 'Hari ini bukan hari kerja.'], 422);
-        }
+        // 1) Hari kerja: bukan syarat. Di Sabtu/Minggu/libur presensi tetap diterima,
+        //    tapi tidak otomatis disetujui -- menunggu persetujuan admin.
+        $hariWajib = self::hariKerja($sekarang);
 
         // 2) Kartu ID harus milik akun yang login
         if (blank($user->uuid_kartu) || ! hash_equals((string) $user->uuid_kartu, trim($data['uuid']))) {
@@ -227,14 +241,15 @@ class AttendanceController extends Controller
             return response()->json($respons, 409);
         }
 
-        // 5) Di luar jendela sesi -> tetap tercatat, tapi menunggu persetujuan HRD
+        // 5) Di luar jendela sesi ATAU bukan hari kerja -> tetap tercatat, tapi menunggu persetujuan admin/HRD
         $jam = $sekarang->hour + $sekarang->minute / 60;
         $jendela = config('prakerin.jendela.' . $data['sesi']);
         $dalamJendela = $jam >= $jendela['mulai'] && $jam < $jendela['selesai'];
+        $langsungDisetujui = $dalamJendela && $hariWajib;
 
         $pathFoto = null;
         try {
-            $sesiPresensi = DB::transaction(function () use ($user, $data, $sekarang, $terdekat, $dalamJendela, &$pathFoto) {
+            $sesiPresensi = DB::transaction(function () use ($user, $data, $sekarang, $terdekat, $langsungDisetujui, &$pathFoto) {
                 if ($data['sesi'] === 'pagi') {
                     $pathFoto = $this->simpanFotoSelfie((string) $data['fotoBase64'], $user->id);
                     if ($pathFoto === null) {
@@ -255,7 +270,7 @@ class AttendanceController extends Controller
                     'foto_url' => $pathFoto,                         // path di disk privat (bukan URL publik)
                     'device_id' => $data['deviceId'] ?? null,
                     'status' => 'hadir',
-                    'status_persetujuan' => $dalamJendela ? 'auto' : 'menunggu',
+                    'status_persetujuan' => $langsungDisetujui ? 'auto' : 'menunggu',
                 ]);
             });
         } catch (\RuntimeException $e) {
@@ -278,7 +293,8 @@ class AttendanceController extends Controller
             'ok' => true,
             'sesiPresensiId' => $sesiPresensi->id,
             'nama' => $user->name,
-            'statusPersetujuan' => $sesiPresensi->status_persetujuan,
+            'statusPersetujuan' => $sesiPresensi->status_persetujuan, // 'auto' | 'menunggu'
+            'hariWajib' => $hariWajib,
             'fotoUrl' => $pathFoto ? route('presensi.foto', $sesiPresensi) : null, // popup sesi pagi
             'fotoProfilUrl' => $user->foto_profil_url,                              // popup sesi sore (belum ada fiturnya)
         ]);

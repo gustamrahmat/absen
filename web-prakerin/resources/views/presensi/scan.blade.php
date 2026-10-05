@@ -38,6 +38,9 @@
 @section('konten')
 <div id="vPilihSesi" class="card">
   <h1 style="margin-bottom:4px">Presensi Scan</h1>
+  @unless ($hariWajib)
+    <div class="notif berhasil" style="background:#fff7ed;color:#9a3412;margin-bottom:12px">Hari ini bukan hari kerja{{ $catatanHari ? ' (' . $catatanHari . ')' : '' }}. Presensi boleh dilakukan tetapi tidak wajib, dan akan menunggu persetujuan admin. Kalau absen sore, laporan harian tetap wajib diisi.</div>
+  @endunless
   <p class="info">Silahkan pilih sesuai dengan jam.</p>
   <div class="sesi-pilih">
     <button type="button" class="sc" id="scPagi" onclick="pilihSesi('pagi')"><div class="ic">☀️</div><b>Presensi Pagi</b><small>06.00 - 13.00</small></button>
@@ -72,7 +75,7 @@
 <div class="modal" id="mOk" style="position:fixed;inset:0;background:rgba(20,25,50,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:50">
   <div style="background:#fff;border-radius:22px;padding:24px;width:100%;max-width:360px;text-align:center">
     <div class="cek">✓</div><h2 style="margin:0 0 6px;font-size:17px">Presensi Berhasil Tercatat</h2>
-    <p class="info" style="margin:0">Kehadiranmu hari ini sudah berhasil dicatat oleh sistem.</p>
+    <p class="info" id="okInfo" style="margin:0">Kehadiranmu hari ini sudah berhasil dicatat oleh sistem.</p>
     <div class="pro"><div class="av" id="okAv">FOTO</div><div><b id="okNama">-</b><small id="okWaktu">-</small></div></div>
     <a href="{{ route('presensi.index') }}" class="btn">Selesai</a>
   </div>
@@ -231,6 +234,9 @@ function aksiSelfie() {
       if (!d.ok) { $('errSelfie').textContent = 'Gagal: ' + (d.pesan || 'tidak diketahui'); return; }
       const w = new Date();
       $('okNama').textContent = d.nama;
+      $('okInfo').textContent = d.statusPersetujuan === 'menunggu'
+        ? 'Presensi tercatat dan menunggu persetujuan admin.'
+        : 'Kehadiranmu hari ini sudah berhasil dicatat oleh sistem.';
       $('okWaktu').textContent = `Tercatat ${w.getDate()} ${BULAN_NAMA[w.getMonth()]} ${w.getFullYear()}, ${p2(w.getHours())}:${p2(w.getMinutes())} WIB`;
       $('okAv').innerHTML = d.fotoUrl ? `<img src="${d.fotoUrl}" alt="">` : 'FOTO';
       $('mOk').style.display = 'flex';

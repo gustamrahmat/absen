@@ -64,5 +64,10 @@ h1{font-size:21px;margin:0 0 4px}.sub{font-size:13px;color:var(--gy);margin:0 0 
   <a href="#" class="item">👤<span>Profil</span></a>
 </nav>
 @stack('js')
+<script>
+// Chrome/Safari bisa memulihkan halaman lama dari cache back/forward (bfcache) tanpa bertanya ke server.
+// Kalau itu terjadi, muat ulang supaya server memutuskan: masih login -> tampil, sudah logout -> ke halaman login.
+window.addEventListener('pageshow', function (e) { if (e.persisted) { window.location.reload(); } });
+</script>
 </body>
 </html>

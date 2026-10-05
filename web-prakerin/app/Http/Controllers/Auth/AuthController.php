@@ -32,17 +32,24 @@ class AuthController extends Controller
 
     public function daftar(Request $request)
     {
+        // NIM/NISN dirapikan dulu (spasi di pinggir dibuang) supaya cek unik & pencocokan data magang konsisten.
+        $request->merge(['nomor_induk' => trim((string) $request->input('nomor_induk'))]);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'email' => ['required', 'string', 'email', 'max:190', 'unique:users,email'],
+            // max:50 sama dengan kolom data_magang.nomor_induk (tempat NIM/NISN dari Excel dicocokkan).
+            'nomor_induk' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z0-9.\-\/]+$/', 'unique:users,nomor_induk'],
             'password' => ['required', 'string', 'min:8'],
         ], [
-            'email.unique' => 'Email ini sudah terdaftar. Silakan masuk ke akun Anda.',
+            'nomor_induk.unique' => 'NIM/NISN ini sudah terdaftar. Silakan masuk, atau hubungi admin kalau bukan Anda yang mendaftar.',
+            'nomor_induk.regex' => 'NIM/NISN hanya boleh berisi huruf, angka, titik, strip, atau garis miring.',
+            'nomor_induk.required' => 'NIM/NISN wajib diisi.',
         ]);
 
+        // Email tidak diminta saat daftar (kolom email sekarang boleh kosong). Login memakai NIM/NISN.
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'nomor_induk' => $data['nomor_induk'],
             'password' => Hash::make($data['password']), // 'password' => 'hashed' di Model juga otomatis hash,
                                                             // Hash::make() di sini supaya eksplisit & aman dari versi Laravel manapun
             'peran' => 'peserta',
@@ -56,7 +63,8 @@ class AuthController extends Controller
     }
 
     // ==== Aksi: MASUK (Login) ====
-    // Identifier boleh EMAIL atau NOMOR INDUK (NIM/NISN), sesuai desain "Alamat Email / NISN / NIM".
+    // Identifier boleh NOMOR INDUK (NIM/NISN) atau EMAIL. Peserta baru masuk dengan NIM/NISN;
+    // email tetap diterima untuk akun yang punya email (mentor/admin, atau peserta lama).
 
     public function masuk(Request $request)
     {
@@ -65,15 +73,16 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $data['identifier'])
-            ->orWhere('nomor_induk', $data['identifier'])
+        $identifier = trim($data['identifier']);
+        $user = User::where('nomor_induk', $identifier)
+            ->orWhere('email', $identifier)
             ->first();
 
         // Pesan disamakan (tidak bilang "email tidak ditemukan" vs "sandi salah") supaya
         // orang lain tidak bisa menebak email mana saja yang sudah terdaftar.
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'identifier' => 'Email/NISN/NIM atau kata sandi salah.',
+                'identifier' => 'NIM/NISN atau kata sandi salah.',
             ]);
         }
 
@@ -87,10 +96,12 @@ class AuthController extends Controller
 
     public function keluar(Request $request)
     {
+        // Auth::logout() juga mengganti remember_token, jadi cookie "ingat saya" di semua perangkat tidak berlaku lagi.
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        // Cache-Control: no-store (middleware TanpaCache) mencegah halaman lama tampil lagi lewat tombol back/forward.
+        return redirect()->route('login')->with('sukses', 'Anda sudah keluar.');
     }
 }

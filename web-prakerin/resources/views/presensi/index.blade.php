@@ -16,7 +16,7 @@
 .cal-day.st-cuti{background:#f3e8ff}.cal-day.st-cuti i{color:#9333ea}
 .cal-day.st-alpha{background:#fef2f2;color:var(--mr)}.cal-day.st-alpha i{color:var(--mr)}
 .cal-day.st-perlu_acc{background:#fff7ed}.cal-day.st-perlu_acc i{color:#ea580c;font-size:12px}
-.cal-day.st-progres i{color:#94a3b8;font-size:12px}
+.cal-day.st-satu_sesi{background:#fff7ed}.cal-day.st-satu_sesi i{color:#ea580c;font-size:12px}
 .legenda{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;font-size:10.5px;color:var(--gy)}
 .legenda .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
 .legenda .hadir{background:var(--hj)}.legenda .izin{background:var(--kn)}.legenda .sakit{background:var(--bi)}.legenda .alpha{background:var(--mr)}.legenda .kosong{background:#cbd5e1}
@@ -26,7 +26,13 @@
 .tile b.hijau{color:var(--hj)}.tile b.kuning{color:var(--kn)}.tile b.biru{color:var(--bi)}.tile b.merah{color:var(--mr)}
 
 .cal-day.st-libur{background:transparent;color:#cbd5e1}
-.legenda .progres{background:#94a3b8}.legenda .perlu{background:#ea580c}
+.cal-day.st-libur_resmi{background:#fef2f2;color:#e11d2e}
+.cal-day.st-progres{background:#f0f4ff}.cal-day.st-progres i{color:var(--b1);font-size:14px}
+.cal-day.st-menunggu{background:#eef2ff}.cal-day.st-menunggu i{font-size:11px}
+.daftar-libur{margin:12px 0 0;padding-top:10px;border-top:1px solid #f1f3f9;font-size:11.5px;color:var(--gy);line-height:1.6}
+.daftar-libur b{color:var(--nv)}
+.cal-day.st-ditolak{background:#f1f5f9;color:#94a3b8}.cal-day.st-ditolak i{color:#94a3b8}
+.legenda .menunggu{background:var(--b1)}.legenda .perlu{background:#ea580c}
 .banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.5}
 .banner a{font-weight:700;color:#9a3412}
 .banner.gagal{background:#fef2f2;border-color:#fecaca;color:var(--mr)}
@@ -73,7 +79,7 @@
       <span></span>
     @endfor
     @foreach ($hariDalamBulan as $tgl => $info)
-      <span class="cal-day st-{{ $info['kode'] }}" title="{{ \Illuminate\Support\Carbon::parse($tgl)->translatedFormat('d F Y') }}">
+      <span class="cal-day st-{{ $info['kode'] }}" title="{{ \Illuminate\Support\Carbon::parse($tgl)->translatedFormat('d F Y') }}{{ $info['catatan'] ? ' — ' . $info['catatan'] : '' }}">
         {{ \Illuminate\Support\Carbon::parse($tgl)->day }}
         <i>{{ $info['tanda'] }}</i>
       </span>
@@ -81,13 +87,24 @@
   </div>
 
   <div class="legenda">
-    <span><i class="dot hadir"></i>Hadir</span>
+    <span><i class="dot hadir"></i>Hadir, sesuai waktu (✓)</span>
     <span><i class="dot izin"></i>Izin</span>
     <span><i class="dot sakit"></i>Sakit</span>
     <span><i class="dot alpha"></i>Alpha</span>
-    <span><i class="dot progres"></i>Baru 1 sesi (…)</span>
-    <span><i class="dot perlu"></i>Menunggu persetujuan HRD (!)</span>
+    <span><i class="dot menunggu"></i>Hari berjalan: sudah pagi, belum sore (…)</span>
+    <span><i class="dot perlu"></i>Hanya 1 sesi: izin setengah hari / lupa absen (!)</span>
+    <span><i class="dot kosong"></i>Lengkap, menunggu persetujuan admin (⏳)</span>
   </div>
+  <p style="font-size:11px;color:var(--gy);margin:10px 0 0;line-height:1.5">Sabtu, Minggu, dan hari libur: presensi boleh dilakukan tetapi tidak wajib, dan menunggu persetujuan admin (✕ abu-abu = ditolak, tidak dihitung alpha). Laporan harian tetap wajib bila kamu absen sore.</p>
+  @if (count($daftarLibur))
+    <div class="daftar-libur">
+      <b>Libur &amp; hari pengganti bulan ini</b><br>
+      @foreach ($daftarLibur as $l)
+        {{ $l->tanggal->translatedFormat('D, d M') }} · {{ $l->nama }}@if ($l->jenis === 'cuti_bersama') (cuti bersama)@endif
+        @if ($l->tanggal_pengganti) — diganti kerja {{ $l->tanggal_pengganti->translatedFormat('D, d M') }}@endif<br>
+      @endforeach
+    </div>
+  @endif
 </div>
 
 <div class="tiles">
