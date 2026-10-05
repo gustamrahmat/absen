@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Resmi Prakerin - New Armada Group</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--b1:#3b5bf0;--b2:#8b5cf6;--nv:#0f1420;--gy:#64748b;--bd:#e3e6ef}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:var(--nv);min-height:100vh}
+.shell{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+
+/* ===== PANEL KIRI (brand) ===== */
+.brand{position:relative;overflow:hidden;background:#f5f7fd;padding:44px 52px;display:flex;flex-direction:column}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none}
+.blob.b1{width:340px;height:340px;background:#7fa0ff;top:-90px;left:-90px}
+.blob.b2{width:300px;height:300px;background:#ffb0c4;bottom:-100px;right:-60px}
+.logo{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.logo .chip{background:#fff;border-radius:10px;padding:5px 9px;font-size:11px;font-weight:800;line-height:1.1;box-shadow:0 4px 10px rgba(0,0,0,.06)}
+.logo .chip span{display:block}
+.logo .chip .n1{color:#e11d2e}.logo .chip .n2{color:var(--nv)}
+.logo b{font-size:15px}.logo small{display:block;font-size:10.5px;color:var(--b1);font-weight:700}
+
+.brand-mid{position:relative;z-index:1;margin-top:auto;padding-bottom:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--b1);background:#e8edff;padding:6px 12px;border-radius:20px;margin-bottom:18px}
+.badge i{width:6px;height:6px;border-radius:50%;background:var(--b1)}
+.brand h1{font-size:32px;line-height:1.25;margin:0 0 14px;font-weight:800}
+.brand h1 .grad{background:linear-gradient(100deg,var(--b1),var(--b2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p{font-size:13.5px;color:var(--gy);line-height:1.6;max-width:400px;margin:0 0 22px}
+.feat{display:flex;gap:12px}
+.feat .f{flex:1;background:#fff;border:1px solid var(--bd);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.feat .ic{font-size:16px}.feat b{display:block;font-size:12.5px}.feat small{font-size:11px;color:var(--gy)}
+.brand-foot{position:relative;z-index:1;border-top:1px solid var(--bd);padding-top:14px;margin-top:26px;display:flex;justify-content:space-between;font-size:11.5px;color:#94a3b8}
+.brand-foot a{color:var(--gy);text-decoration:none}
+
+/* ===== PANEL KANAN (form) ===== */
+.formside{background:#fff;display:flex;align-items:center;justify-content:center;padding:40px}
+.formwrap{width:100%;max-width:380px}
+.formwrap h2{font-size:22px;margin:0 0 4px}
+.formwrap .sub{font-size:13px;color:var(--gy);margin:0 0 26px}
+.fld{margin-bottom:16px}
+.fld label{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;margin-bottom:7px}
+.fld a{font-size:11.5px;font-weight:600;color:var(--b1);text-decoration:none}
+.inp{position:relative}
+.inp span{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#a3aabb;font-size:14px}
+.inp input{width:100%;padding:12px 14px 12px 36px;border:1.5px solid var(--bd);border-radius:11px;font:14px Inter,sans-serif;background:#fafbfd}
+.inp input:focus{outline:0;border-color:var(--b1);background:#fff}
+.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--gy);margin:-4px 0 18px}
+.chk input{width:15px;height:15px}
+.btn{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(100deg,var(--b1),var(--b2));color:#fff;font:700 14.5px Inter,sans-serif;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.hr{display:flex;align-items:center;gap:10px;margin:22px 0 16px;color:#c9cedb;font-size:11px}
+.hr::before,.hr::after{content:'';flex:1;height:1px;background:var(--bd)}
+.switch{text-align:center;font-size:13px;color:var(--gy)}
+.switch a{color:var(--b1);font-weight:700;text-decoration:none;cursor:pointer}
+.msg{font-size:12.5px;border-radius:10px;padding:9px 12px;margin-bottom:14px;display:none}
+.msg.gagal{display:block;background:#fef2f2;color:#dc2626}
+.msg.ok{display:block;background:#ecfdf3;color:#0f7a3a}
+.hide{display:none!important}
+
+/* ===== MOBILE: landing dulu (tombol Masuk/Daftar), form baru muncul setelah dipilih ===== */
+.back{display:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--bd);background:#fff;align-items:center;justify-content:center;margin-bottom:14px;cursor:pointer}
+.landing-btns{display:none;flex-direction:column;gap:10px;position:relative;z-index:1;margin-top:22px}
+.landing-btns button{padding:13px;border-radius:12px;font:700 14px Inter,sans-serif;cursor:pointer;border:1.5px solid transparent}
+.landing-btns .lb-masuk{background:linear-gradient(100deg,var(--b1),var(--b2));color:#fff}
+.landing-btns .lb-daftar{background:#fff;border-color:var(--bd);color:var(--nv)}
+
+@media (max-width: 860px){
+  .shell{grid-template-columns:1fr;min-height:auto}
+  .brand{padding:32px 24px 26px;min-height:100vh}
+  .brand h1{font-size:26px}
+  .feat{flex-direction:column}
+  .formside{display:none;padding:28px 22px}
+  .brand-mid{margin-top:34px}
+  body.tampil-form .brand{min-height:auto;padding-bottom:22px}
+  body.tampil-form .brand-mid,body.tampil-form .brand-foot,body.tampil-form .feat{display:none}
+  body.tampil-form .back{display:flex}
+  body.tampil-form .formside{display:flex}
+  body:not(.tampil-form) .landing-btns{display:flex}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand">
+    <div class="blob b1"></div><div class="blob b2"></div>
+    <div class="logo">
+      <div class="chip"><span class="n1">new</span><span class="n2">armada</span></div>
+      <div><b>New Armada</b><small>PT MEKAR ARMADA JAYA</small></div>
+    </div>
+
+    <button class="back" onclick="keLanding()">&larr;</button>
+
+    <div class="brand-mid">
+      <div class="badge" id="badgeMode"><i></i> Pendaftaran Akun Baru</div>
+      <h1>Selamat Datang di<br><span class="grad">Portal Resmi Prakerin</span></h1>
+      <p>Akses portal akun peserta untuk memantau status lamaran, verifikasi berkas sekolah/kampus, dan alokasi periode pengerjaan.</p>
+      <div class="feat">
+        <div class="f"><span class="ic">🛡️</span><div><b>Proses Realtime</b><small>Status seleksi transparan</small></div></div>
+        <div class="f"><span class="ic">🔒</span><div><b>Aman &amp; Terpusat</b><small>Verifikasi terintegrasi</small></div></div>
+      </div>
+    </div>
+
+    <div class="landing-btns">
+      <button class="lb-masuk" onclick="bukaForm('masuk')">Login</button>
+      <button class="lb-daftar" onclick="bukaForm('daftar')">Sign Up</button>
+    </div>
+
+    <div class="brand-foot"><span>© 2026 PT MAJ</span><a href="#">Butuh bantuan?</a></div>
+  </div>
+
+  <div class="formside">
+    <div class="formwrap">
+      <div class="msg" id="pesan"></div>
+
+      <!-- ==== FORM DAFTAR ==== -->
+      <form id="fDaftar" onsubmit="return submitDaftar(event)">
+        <h2>Buat Akun Baru</h2>
+        <p class="sub">Lengkapi 3 data di bawah untuk membuat akun</p>
+        <div class="fld"><label>Nama Lengkap</label><div class="inp"><span>👤</span>
+          <input id="dNama" placeholder="Masukkan nama lengkap Anda" required></div></div>
+        <div class="fld"><label>Alamat Email</label><div class="inp"><span>@</span>
+          <input id="dEmail" type="email" placeholder="contoh: nama@email.com" required></div></div>
+        <div class="fld"><label>Kata Sandi</label><div class="inp"><span>🔒</span>
+          <input id="dSandi" type="password" placeholder="Minimal 8 karakter" minlength="8" required></div></div>
+        <button class="btn" id="btnDaftar" type="submit">Daftar Akun →</button>
+        <div class="hr">ATAU</div>
+        <p class="switch">Sudah punya akun? <a onclick="gantiMode('masuk')">Masuk Sekarang</a></p>
+      </form>
+
+      <!-- ==== FORM MASUK ==== -->
+      <form id="fMasuk" class="hide" onsubmit="return submitMasuk(event)">
+        <h2>Masuk ke Akun Anda</h2>
+        <p class="sub">Masukkan email &amp; kata sandi yang telah terdaftar</p>
+        <div class="fld"><label>Alamat Email / NISN / NIM</label><div class="inp"><span>@</span>
+          <input id="mId" placeholder="contoh: siswa@smk.sch.id" required></div></div>
+        <div class="fld"><label>Kata Sandi <a href="#" onclick="alert('Fitur lupa kata sandi menyusul.');return false">Lupa Kata Sandi?</a></label>
+          <div class="inp"><span>🔒</span><input id="mSandi" type="password" placeholder="••••••••" required></div></div>
+        <label class="chk"><input type="checkbox" id="mIngat"> Ingat saya di perangkat ini</label>
+        <button class="btn" id="btnMasuk" type="submit">Masuk ke Akun →</button>
+        <div class="hr">ATAU</div>
+        <p class="switch">Belum memiliki akun peserta? <a onclick="gantiMode('daftar')">Daftar Prakerin Sekarang</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// GANTI dengan URL tunnel server-prakerin.js yang sedang aktif.
+const URL_API = 'https://competitive-with-namespace-usd.trycloudflare.com';
+
+let mode = 'daftar';
+
+function gantiMode(m) {
+  mode = m;
+  document.getElementById('fDaftar').classList.toggle('hide', m !== 'daftar');
+  document.getElementById('fMasuk').classList.toggle('hide', m !== 'masuk');
+  document.getElementById('badgeMode').innerHTML = m === 'daftar' ? '<i></i> Pendaftaran Akun Baru' : '<i></i> Login Akun';
+  document.getElementById('pesan').className = 'msg';
+}
+
+// Mobile: tampilan awal cuma landing (tombol Login/Sign Up di atas brand panel).
+// Desktop: form langsung tampil berdampingan, landing tidak pernah dipakai.
+function bukaForm(m) { gantiMode(m); document.body.classList.add('tampil-form'); }
+function keLanding() { document.body.classList.remove('tampil-form'); }
+
+function tampilPesan(jenis, teks) { const el = document.getElementById('pesan'); el.className = 'msg ' + jenis; el.textContent = teks; }
+
+function simpanSesi(data, ingat) {
+  const target = ingat ? localStorage : sessionStorage;
+  target.setItem('prakerin_token', data.token);
+  target.setItem('prakerin_user', JSON.stringify(data.user));
+}
+
+function submitDaftar(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnDaftar');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  document.getElementById('pesan').className = 'msg';
+
+  fetch(URL_API + '/auth/daftar', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nama: document.getElementById('dNama').value.trim(), email: document.getElementById('dEmail').value.trim(), kataSandi: document.getElementById('dSandi').value })
+  }).then(r => r.json()).then(d => {
+    btn.disabled = false; btn.textContent = 'Daftar Akun →';
+    if (!d.ok) return tampilPesan('gagal', d.pesan || 'Gagal membuat akun.');
+    simpanSesi(d, false);
+    tampilPesan('ok', 'Akun berhasil dibuat! Mengalihkan...');
+    setTimeout(() => { window.location.href = 'index.html'; }, 900);
+  }).catch(() => { btn.disabled = false; btn.textContent = 'Daftar Akun →'; tampilPesan('gagal', 'Tidak bisa terhubung ke server. Cek koneksi/tunnel.'); });
+  return false;
+}
+
+function submitMasuk(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnMasuk');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  document.getElementById('pesan').className = 'msg';
+  const ingat = document.getElementById('mIngat').checked;
+
+  fetch(URL_API + '/auth/masuk', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: document.getElementById('mId').value.trim(), kataSandi: document.getElementById('mSandi').value, ingat })
+  }).then(r => r.json()).then(d => {
+    btn.disabled = false; btn.textContent = 'Masuk ke Akun →';
+    if (!d.ok) return tampilPesan('gagal', d.pesan || 'Gagal masuk.');
+    simpanSesi(d, ingat);
+    tampilPesan('ok', `Selamat datang, ${d.user.nama}! Mengalihkan...`);
+    setTimeout(() => { window.location.href = 'index.html'; }, 900);
+  }).catch(() => { btn.disabled = false; btn.textContent = 'Masuk ke Akun →'; tampilPesan('gagal', 'Tidak bisa terhubung ke server. Cek koneksi/tunnel.'); });
+  return false;
+}
+
+gantiMode('daftar');
+</script>
+</body>
+</html>
