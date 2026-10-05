@@ -5,22 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Departemen;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class KartuIdController extends Controller
 {
-    // AdminOnly middleware sudah memastikan admin berasal dari tabel admins.
+    // ============ HALAMAN: CETAK KARTU ID (hasil cetak = PDF, satu halaman-set per divisi) ============
+    // ?divisi= kosong -> semua divisi (halaman baru tiap divisi) | angka -> id departemen | tanpa -> peserta tanpa divisi
+    // QR HANYA berisi UUID (bukan data pribadi). QR digambar di peramban; cetak lewat "Simpan sebagai PDF".
     public function cetak(Request $request)
     {
-        // Isi uuid_kartu untuk peserta lama yang masih NULL,
-        // supaya mereka ikut tampil dan QR-nya bisa dibuat.
-        User::where('peran', 'peserta')
-            ->whereNull('uuid_kartu')
-            ->get()
-            ->each(function (User $u) {
-                $u->uuid_kartu = (string) Str::uuid();
-                $u->save();
-            });
+        abort_unless(in_array(Auth::user()->peran, config('prakerin.peran_admin'), true), 403);
 
         $pilihan = (string) $request->query('divisi', '');
 

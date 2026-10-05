@@ -11,11 +11,11 @@
         @error('name') <div class="errtxt">{{ $message }}</div> @enderror
     </div>
     <div class="fld">
-        <label>Alamat Email</label>
-        <div class="inp"><span>@</span>
-            <input type="email" name="email" value="{{ old('email') }}" placeholder="contoh: nama@email.com" class="@error('email') error @enderror" required>
+        <label>NIM / NISN</label>
+        <div class="inp"><span>#</span>
+            <input name="nomor_induk" value="{{ old('nomor_induk') }}" placeholder="Masukkan NIM / NISN Anda" inputmode="numeric" autocomplete="username" maxlength="50" class="@error('nomor_induk') error @enderror" required>
         </div>
-        @error('email') <div class="errtxt">{{ $message }}</div> @enderror
+        @error('nomor_induk') <div class="errtxt">{{ $message }}</div> @enderror
     </div>
     <div class="fld">
         <label>Kata Sandi</label>

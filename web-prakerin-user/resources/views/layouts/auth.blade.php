@@ -110,7 +110,7 @@ body{margin:0;font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:va
       <a href="{{ route('daftar') }}" class="lb-daftar">Sign Up</a>
     </div>
 
-    <div class="brand-foot"><span>© {{ date('Y') }} PT MAI</span><a href="#">Butuh bantuan?</a></div>
+    <div class="brand-foot"><span>© {{ date('Y') }} PT MAJ</span><a href="#">Butuh bantuan?</a></div>
   </div>
 
   <div class="formside">
@@ -126,5 +126,10 @@ body{margin:0;font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:va
     </div>
   </div>
 </div>
+<script>
+// Chrome/Safari bisa memulihkan halaman lama dari cache back/forward (bfcache) tanpa bertanya ke server.
+// Kalau itu terjadi, muat ulang supaya server memutuskan: masih login -> tampil, sudah logout -> ke halaman login.
+window.addEventListener('pageshow', function (e) { if (e.persisted) { window.location.reload(); } });
+</script>
 </body>
 </html>

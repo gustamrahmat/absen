@@ -4,168 +4,125 @@ namespace App\Services;
 
 use App\Models\DataMagang;
 use App\Models\Departemen;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-// Impor daftar peserta dari Excel (sheet PERTAMA, baris pertama = judul kolom, urutan kolom bebas).
-// Bisa dipanggil dari Artisan (prakerin:impor-peserta) maupun dari halaman admin:
-//     $hasil = app(ImporDataMagang::class)->jalankan($pathFile, hanyaUji: false);
-//
-// Aturan:
-//  - Idempoten: baris dicocokkan lewat NIS/NIM; menjalankan ulang file yang sama tidak membuat data ganda.
-//  - UUID di Excel (kartu lama dari server Node) DIPERTAHANKAN. UUID baru dibuat hanya untuk baris yang kosong.
-//  - UUID yang sudah tersimpan di database TIDAK PERNAH ditimpa (kartu bisa sudah tercetak / sudah ditautkan).
-//  - Baris bermasalah dilewati dan dilaporkan; baris lain tetap diproses.
 class ImporDataMagang
 {
-    // Nama kolom yang dikenali (huruf besar, spasi dirapatkan). Wajib: nomorInduk dan nama.
     private const KOLOM = [
-        'nomorInduk' => ['NIS/NIM', 'NIM/NIS', 'NIM/NISN', 'NISN/NIM', 'NIM', 'NISN', 'NIS', 'NOMOR INDUK'],
-        'nama' => ['NAMA', 'NAMA LENGKAP'],
-        'asalSekolah' => ['UNIV/SEKOLAH', 'SEKOLAH/UNIV', 'ASAL SEKOLAH', 'SEKOLAH', 'UNIVERSITAS'],
-        'jurusan' => ['PRODI', 'JURUSAN', 'PROGRAM STUDI'],
-        'departemen' => ['DEPARTEMEN', 'DIVISI'],
-        'uuid' => ['UUID'],
+        'nomorInduk'=>['NIS/NIM','NIM/NIS','NIM/NISN','NISN/NIM','NIM','NISN','NIS','NOMOR INDUK'],
+        'nama'=>['NAMA','NAMA LENGKAP'],
+        'asalSekolah'=>['UNIV/SEKOLAH','SEKOLAH/UNIV','ASAL SEKOLAH','SEKOLAH','UNIVERSITAS'],
+        'jurusan'=>['PRODI','JURUSAN','PROGRAM STUDI'],
+        'departemen'=>['DEPARTEMEN','DIVISI'],
+        'divisi'=>['DIVISI'],
+        'uuid'=>['UUID'],
+        'jenisKelamin'=>['L/P','JENIS KELAMIN','JK'],
+        'tglMulai'=>['TGL_MULAI','TANGGAL MULAI','TGL MULAI'],
+        'tglSelesai'=>['TGL_SELESAI','TANGGAL SELESAI','TGL SELESAI'],
+        'keterangan'=>['KET','KETERANGAN'],
+        'tempatPrakerin'=>['TEMPAT PRAKERIN','TEMPAT_PRAKERIN'],
+        'statusMagang'=>['STATUS','STATUS MAGANG'],
+        'tipeMagang'=>['TIPE MAGANG','TIPE_MAAGNG'],
     ];
 
-    public function jalankan(string $pathFile, bool $hanyaUji = false): array
+    public function jalankan(string $pathFile,bool $hanyaUji=false): array
     {
-        $baris = IOFactory::load($pathFile)->getSheet(0)->toArray(null, true, true, false);
-        if (count($baris) < 2) {
-            throw new \InvalidArgumentException('File kosong atau hanya berisi judul kolom.');
-        }
+        $baris=IOFactory::load($pathFile)->getSheet(0)->toArray(null,true,true,false);
+        if(count($baris)<2) throw new \InvalidArgumentException('File kosong atau hanya berisi judul kolom.');
 
-        $peta = $this->petakanKolom($baris[0]);
-
-        $hasil = [
-            'hanyaUji' => $hanyaUji, 'baru' => 0, 'diperbarui' => 0, 'tetap' => 0, 'uuidBaru' => 0,
-            'departemenBaru' => [], 'peringatan' => [], 'galat' => [],
-        ];
-        $sudahDiFile = [];
-        $cacheDepartemen = [];
+        $peta=$this->petakanKolom($baris[0]);
+        $hasil=['hanyaUji'=>$hanyaUji,'baru'=>0,'diperbarui'=>0,'tetap'=>0,'uuidBaru'=>0,'departemenBaru'=>[],'peringatan'=>[],'galat'=>[]];
+        $duplikat=[]; $cache=[];
 
         DB::beginTransaction();
         try {
-            for ($i = 1; $i < count($baris); $i++) {
-                $nomorBaris = $i + 1; // nomor baris seperti terlihat di Excel
-                $ambil = fn (string $kunci) => isset($peta[$kunci])
-                    ? Str::squish((string) ($baris[$i][$peta[$kunci]] ?? ''))
-                    : '';
+            for($i=1;$i<count($baris);$i++){
+                $no=$i+1;
+                $ambil=fn($k)=>isset($peta[$k])?Str::squish((string)($baris[$i][$peta[$k]]??'')):'';
+                $nim=$ambil('nomorInduk'); $nama=$ambil('nama');
+                $asal=$ambil('asalSekolah'); $jurusan=$ambil('jurusan');
+                $dep=$ambil('departemen'); $divisi=$ambil('divisi'); $uuid=strtolower($ambil('uuid'));
+                if(($nim.$nama.$asal.$jurusan.$dep.$divisi.$uuid)==='') continue;
+                if($nim===''||$nama===''){ $hasil['galat'][]="Baris {$no}: NIS/NIM dan NAMA wajib diisi."; continue; }
+                $key=strtolower($nim);
+                if(isset($duplikat[$key])){ $hasil['galat'][]="Baris {$no}: NIS/NIM {$nim} dobel di file."; continue; }
+                $duplikat[$key]=$no;
+                if($uuid!==''&&!Str::isUuid($uuid)){ $hasil['galat'][]="Baris {$no}: UUID tidak valid."; continue; }
 
-                $nomorInduk = $ambil('nomorInduk');
-                $nama = $ambil('nama');
-                $asalSekolah = $ambil('asalSekolah');
-                $jurusan = $ambil('jurusan');
-                $namaDepartemen = $ambil('departemen');
-                $uuidExcel = strtolower($ambil('uuid'));
-
-                if (($nomorInduk . $nama . $asalSekolah . $jurusan . $namaDepartemen . $uuidExcel) === '') {
-                    continue; // baris kosong
-                }
-                if ($nomorInduk === '' || $nama === '') {
-                    $hasil['galat'][] = "Baris {$nomorBaris}: NIS/NIM dan NAMA wajib diisi.";
-                    continue;
-                }
-                $kunciFile = strtolower($nomorInduk);
-                if (isset($sudahDiFile[$kunciFile])) {
-                    $hasil['galat'][] = "Baris {$nomorBaris}: NIS/NIM {$nomorInduk} dobel di file (sudah ada di baris {$sudahDiFile[$kunciFile]}).";
-                    continue;
-                }
-                $sudahDiFile[$kunciFile] = $nomorBaris;
-                if ($uuidExcel !== '' && ! Str::isUuid($uuidExcel)) {
-                    $hasil['galat'][] = "Baris {$nomorBaris} ({$nomorInduk}): UUID tidak valid.";
-                    continue;
-                }
-
-                // Departemen dicari/dibuat DI LUAR savepoint baris supaya cache tetap benar kalau baris gagal.
-                $departemenId = null;
-                if ($namaDepartemen !== '') {
-                    $kunciDep = strtolower($namaDepartemen);
-                    if (! array_key_exists($kunciDep, $cacheDepartemen)) {
-                        $dep = Departemen::firstOrCreate(['nama' => $namaDepartemen]);
-                        if ($dep->wasRecentlyCreated) {
-                            $hasil['departemenBaru'][] = $dep->nama;
-                        }
-                        $cacheDepartemen[$kunciDep] = $dep->id;
+                $depId=null;
+                if($dep!==''){
+                    $dk=strtolower($dep);
+                    if(!isset($cache[$dk])){
+                        $d=Departemen::firstOrCreate(['nama'=>$dep]);
+                        if($d->wasRecentlyCreated)$hasil['departemenBaru'][]=$d->nama;
+                        $cache[$dk]=$d->id;
                     }
-                    $departemenId = $cacheDepartemen[$kunciDep];
+                    $depId=$cache[$dk];
                 }
+
+                $jk=$ambil('jenisKelamin');
+                $jk=in_array(strtoupper($jk),['L','P'],true)?strtoupper($jk):null;
+                $parseDate=function($v){
+                    $v=trim((string)$v); if($v==='') return null;
+                    try { return is_numeric($v) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($v)->format('Y-m-d') : date('Y-m-d',strtotime($v)); }
+                    catch(\Throwable){ return null; }
+                };
+                $start=$parseDate($ambil('tglMulai')); $end=$parseDate($ambil('tglSelesai'));
 
                 try {
-                    DB::transaction(function () use (&$hasil, $nomorBaris, $nomorInduk, $nama, $asalSekolah, $jurusan, $departemenId, $uuidExcel) {
-                        $rekam = DataMagang::where('nomor_induk', $nomorInduk)->first();
-                        $nilai = [
-                            'nama' => $nama,
-                            'asal_sekolah' => $asalSekolah !== '' ? $asalSekolah : null,
-                            'jurusan' => $jurusan !== '' ? $jurusan : null,
-                            'departemen_id' => $departemenId,
+                    DB::transaction(function() use(&$hasil,$nim,$nama,$asal,$jurusan,$depId,$divisi,$uuid,$jk,$start,$end,$ambil,$no){
+                        $rekam=DataMagang::where('nomor_induk',$nim)->first();
+                        $nilai=[
+                            'nama'=>$nama,'asal_sekolah'=>$asal?:null,'jurusan'=>$jurusan?:null,
+                            'departemen_id'=>$depId,'divisi'=>$divisi?:null,'jenis_kelamin'=>$jk,
+                            'tgl_mulai'=>$start,'tgl_selesai'=>$end,
+                            'keterangan'=>$ambil('keterangan')?:null,
+                            'tempat_prakerin'=>$ambil('tempatPrakerin')?:null,
+                            'status_magang'=>strtoupper($ambil('statusMagang')?:'ACTIVE'),
                         ];
 
-                        if (! $rekam) {
-                            $uuidPakai = $uuidExcel !== '' ? $uuidExcel : (string) Str::uuid();
-                            $dipakai = DataMagang::where('uuid', $uuidPakai)->exists()
-                                || User::where('uuid_kartu', $uuidPakai)->exists();
-                            if ($dipakai) {
-                                $hasil['galat'][] = "Baris {$nomorBaris} ({$nomorInduk}): UUID sudah dipakai peserta lain.";
-                                return;
+                        if(!$rekam){
+                            $uuidPakai=$uuid!==''?$uuid:(string)Str::uuid();
+                            if(DataMagang::where('uuid',$uuidPakai)->exists()){
+                                $hasil['galat'][]="Baris {$no}: UUID sudah dipakai peserta lain."; return;
                             }
-                            DataMagang::create($nilai + ['nomor_induk' => $nomorInduk, 'uuid' => $uuidPakai]);
-                            $hasil['baru']++;
-                            if ($uuidExcel === '') {
-                                $hasil['uuidBaru']++;
-                            }
-                            return;
+                            DataMagang::create($nilai+[
+                                'nomor_induk'=>$nim,'uuid'=>$uuidPakai,
+                                'tipe_magang'=>in_array(strtolower($ambil('tipeMagang')),['kuliah','smk'],true)?strtolower($ambil('tipeMagang')):'smk',
+                                'status_kehadiran_awal'=>'hadir'
+                            ]);
+                            $hasil['baru']++; if($uuid==='')$hasil['uuidBaru']++; return;
                         }
 
-                        if ($uuidExcel !== '' && $uuidExcel !== strtolower($rekam->uuid)) {
-                            $hasil['peringatan'][] = "Baris {$nomorBaris} ({$nomorInduk}): UUID di Excel berbeda dengan yang tersimpan di database, UUID Excel diabaikan.";
-                        }
+                        if($uuid!=='' && strtolower($rekam->uuid)!==$uuid)
+                            $hasil['peringatan'][]="Baris {$no} ({$nim}): UUID Excel berbeda, UUID lama dipertahankan.";
 
                         $rekam->fill($nilai);
-                        if ($rekam->isDirty()) {
-                            $rekam->save();
-                            $hasil['diperbarui']++;
-                        } else {
-                            $hasil['tetap']++;
-                        }
+                        if($rekam->isDirty()){ $rekam->save(); $hasil['diperbarui']++; }
+                        else $hasil['tetap']++;
                     });
-                } catch (\Throwable $e) {
-                    $hasil['galat'][] = "Baris {$nomorBaris} ({$nomorInduk}): gagal disimpan ({$e->getMessage()}).";
-                }
+                } catch(\Throwable $e){ $hasil['galat'][]="Baris {$no} ({$nim}): {$e->getMessage()}"; }
             }
-
-            $hanyaUji ? DB::rollBack() : DB::commit(); // mode uji: semua dibatalkan, hanya laporan yang dikembalikan
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
-        }
+            $hanyaUji?DB::rollBack():DB::commit();
+        } catch(\Throwable $e){DB::rollBack();throw $e;}
 
         return $hasil;
     }
 
-    // Mencocokkan judul kolom di baris pertama dengan nama yang dikenali -> indeks kolom.
     private function petakanKolom(array $judul): array
     {
-        $peta = [];
-        foreach ($judul as $indeks => $teks) {
-            $bersih = strtoupper(Str::squish(str_replace("\xEF\xBB\xBF", '', (string) $teks)));
-            foreach (self::KOLOM as $kunci => $alias) {
-                if (! isset($peta[$kunci]) && in_array($bersih, $alias, true)) {
-                    $peta[$kunci] = $indeks;
-                }
+        $peta=[];
+        foreach($judul as $i=>$teks){
+            $bersih=strtoupper(Str::squish(str_replace("\xEF\xBB\xBF",'',(string)$teks)));
+            foreach(self::KOLOM as $k=>$alias){
+                if(!isset($peta[$k])&&in_array($bersih,$alias,true))$peta[$k]=$i;
             }
         }
-
-        if (! isset($peta['nomorInduk']) || ! isset($peta['nama'])) {
-            $terbaca = implode(', ', array_filter(array_map(fn ($t) => trim((string) $t), $judul)));
-            throw new \InvalidArgumentException(
-                'Kolom wajib tidak ditemukan. Dibutuhkan kolom NIS/NIM dan NAMA di baris pertama sheet pertama. '
-                . 'Judul kolom yang terbaca: ' . ($terbaca ?: '(kosong)')
-            );
+        if(!isset($peta['nomorInduk'])||!isset($peta['nama'])){
+            throw new \InvalidArgumentException('Kolom wajib tidak ditemukan. Dibutuhkan NIS/NIM dan NAMA.');
         }
-
         return $peta;
     }
 }

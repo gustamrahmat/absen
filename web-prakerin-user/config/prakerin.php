@@ -11,14 +11,11 @@ return [
         'sore' => ['mulai' => 13, 'selesai' => 18],
     ],
 
-    // Hari kerja memakai nomor hari ISO: 1 = Senin ... 7 = Minggu. Sekarang Senin-Jumat.
+    // Hari kerja WAJIB memakai nomor hari ISO: 1 = Senin ... 7 = Minggu. Sekarang Senin-Jumat.
+    // Di luar hari ini presensi tetap boleh, tidak wajib, dan menunggu persetujuan admin.
+    // Hari libur (nasional, cuti bersama, perusahaan) dan hari kerja pengganti ada di TABEL `hari_libur`
+    // (kelola dengan `php artisan prakerin:libur`), bukan di sini. Lihat App\Services\KalenderKerja.
     'hari_kerja' => [1, 2, 3, 4, 5],
-
-    // Tanggal libur nasional / cuti bersama (format 'Y-m-d'). Diisi manual dulu;
-    // nanti bisa diganti tabel kalender perusahaan.
-    'libur' => [
-        // '2026-12-25',
-    ],
 
     // Batas akurasi GPS (meter). Dicek di peramban DAN di server.
     // CATATAN: 7 m itu ketat -- banyak HP hanya mencapai 10-20 m di dalam bangunan. Longgarkan kalau banyak peserta gagal scan.

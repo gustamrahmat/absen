@@ -40,9 +40,9 @@ h1{font-size:21px;margin:0 0 4px}.sub{font-size:13px;color:var(--gy);margin:0 0 
 <header class="topnav">
   <div class="brand"><span>new</span> armada</div>
   <nav class="nav-desktop">
-    <a href="{{ route('presensi.index') }}" class="{{ request()->routeIs('presensi.*') ? 'aktif' : '' }}">Presensi</a>
-    <a href="{{ route('laporan.riwayat') }}" class="{{ request()->routeIs('laporan.*') ? 'aktif' : '' }}">Laporan</a>
+    <a href="#">Beranda</a>
     <a href="#">Lowongan</a>
+    <a href="{{ route('presensi.index') }}" class="{{ request()->routeIs('presensi.*') ? 'aktif' : '' }}">Presensi</a>
     <a href="#">Profil</a>
   </nav>
   <form method="POST" action="{{ route('logout') }}" style="margin-left:auto">
@@ -64,5 +64,10 @@ h1{font-size:21px;margin:0 0 4px}.sub{font-size:13px;color:var(--gy);margin:0 0 
   <a href="#" class="item">👤<span>Profil</span></a>
 </nav>
 @stack('js')
+<script>
+// Chrome/Safari bisa memulihkan halaman lama dari cache back/forward (bfcache) tanpa bertanya ke server.
+// Kalau itu terjadi, muat ulang supaya server memutuskan: masih login -> tampil, sudah logout -> ke halaman login.
+window.addEventListener('pageshow', function (e) { if (e.persisted) { window.location.reload(); } });
+</script>
 </body>
 </html>
