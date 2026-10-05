@@ -91,9 +91,7 @@
     <span><i class="dot izin"></i>Izin</span>
     <span><i class="dot sakit"></i>Sakit</span>
     <span><i class="dot alpha"></i>Alpha</span>
-    <span><i class="dot menunggu"></i>Hari berjalan: sudah pagi, belum sore (…)</span>
-    <span><i class="dot perlu"></i>Hanya 1 sesi: izin setengah hari / lupa absen (!)</span>
-    <span><i class="dot kosong"></i>Lengkap, menunggu persetujuan admin (⏳)</span>
+    <span><i class="dot kosong"></i>Menunggu persetujuan admin (⏳)</span>
   </div>
   <p style="font-size:11px;color:var(--gy);margin:10px 0 0;line-height:1.5">Sabtu, Minggu, dan hari libur: presensi boleh dilakukan tetapi tidak wajib, dan menunggu persetujuan admin (✕ abu-abu = ditolak, tidak dihitung alpha). Laporan harian tetap wajib bila kamu absen sore.</p>
   @if (count($daftarLibur))
@@ -115,7 +113,7 @@
 </div>
 
 <a href="{{ route('presensi.scan') }}" class="btn">📷 Presensi Scan<small>Scan QR ID card untuk absen</small></a>
-<button type="button" class="btn-outline" onclick="bukaUpload()">📎 Upload Tugas<small>Kirim tugas dari mentor (jpg, png, pdf, doc, docx; maks 2 MB)</small></button>
+<button type="button" class="btn-outline" onclick="bukaUpload()">📎 Upload Tugas<small>Kirim tugas (jpg, png, pdf, doc, docx; maks 2 MB)</small></button>
 <a href="{{ route('laporan.riwayat') }}" class="btn-outline">📝 Laporan Harian<small>Lihat riwayat laporan harianmu</small></a>
 
 <div class="card" style="margin-top:16px">

@@ -110,7 +110,7 @@ body{margin:0;font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:va
       <a href="{{ route('daftar') }}" class="lb-daftar">Sign Up</a>
     </div>
 
-    <div class="brand-foot"><span>© {{ date('Y') }} PT MAI</span><a href="#">Butuh bantuan?</a></div>
+    <div class="brand-foot"><span>© {{ date('Y') }} PT MAJ</span><a href="#">Butuh bantuan?</a></div>
   </div>
 
   <div class="formside">
