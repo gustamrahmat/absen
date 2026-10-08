@@ -455,13 +455,33 @@ function ulangDariScan() {
   mulaiScan();
 }
 
+/* ===== KIRIM PRESENSI KE SERVER =====
+   Kalau server membalas error tanpa field "pesan" (mis. 419/413/429/500),
+   tampilkan penyebab + kode statusnya, bukan sekadar "tidak diketahui". */
+function kirimSimpan(payload) {
+  return fetch(ROUTE_SIMPAN, { method: 'POST', headers: headerJson(), body: JSON.stringify(payload) })
+    .then(async r => {
+      let d = null;
+      try { d = await r.json(); } catch (e) { d = null; }
+      if (!d) d = { ok: false };
+      if (!d.ok && !d.pesan) {
+        const alasan = {
+          401: 'Sesi login habis. Silakan login ulang.',
+          403: 'Akses ditolak.',
+          413: 'Ukuran foto terlalu besar untuk server.',
+          419: 'Sesi halaman kedaluwarsa. Muat ulang halaman lalu coba lagi.',
+          429: 'Terlalu banyak percobaan. Tunggu 1 menit lalu coba lagi.',
+          500: 'Terjadi kesalahan di server.',
+        };
+        d.pesan = (alasan[r.status] || d.message || 'Respons server tidak dikenali') + ' (kode ' + r.status + ')';
+      }
+      return d;
+    });
+}
+
 /* ===== SESI SORE ===== */
 function kirimSoreLalu() {
-  fetch(ROUTE_SIMPAN, {
-    method: 'POST', headers: headerJson(),
-    body: JSON.stringify({ uuid: ident.uuid, sesi: 'sore', lat: userLat, lng: userLng, akurasi, deviceId })
-  })
-    .then(r => r.json())
+  kirimSimpan({ uuid: ident.uuid, sesi: 'sore', lat: userLat, lng: userLng, akurasi, deviceId })
     .then(d => {
       if (!d.ok) {
         alert('Gagal: ' + (d.pesan || 'tidak diketahui'));
@@ -537,11 +557,7 @@ function aksiSelfie() {
     $('btnSelfie').disabled = true;
     $('btnSelfie').textContent = 'Mengirim...';
 
-    fetch(ROUTE_SIMPAN, {
-      method: 'POST', headers: headerJson(),
-      body: JSON.stringify({ uuid: ident.uuid, sesi: 'pagi', lat: userLat, lng: userLng, akurasi, deviceId, fotoBase64: foto })
-    })
-      .then(r => r.json())
+    kirimSimpan({ uuid: ident.uuid, sesi: 'pagi', lat: userLat, lng: userLng, akurasi, deviceId, fotoBase64: foto })
       .then(d => {
         $('btnSelfie').disabled = false;
         $('btnSelfie').textContent = '✓ Gunakan Foto & Kirim Presensi';

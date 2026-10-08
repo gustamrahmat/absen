@@ -63,7 +63,7 @@ class AttendanceController extends Controller
         $akhir = $bulan->copy()->endOfMonth();
 
         // Ambil semua sesi presensi bulan ini.
-        $sesiBulanIni = SesiPresensi::where(
+        $sesiBulanIni = SesiPresensi::with('laporanHarian')->where(
             'user_id',
             $user->id
         )
@@ -230,23 +230,12 @@ class AttendanceController extends Controller
             'sore'
         );
 
-        // Pagi + sore lengkap.
-        if ($adaPagi && $adaSore) {
-            return [
-                'kode' => 'hadir',
-                'tanda' => '✓',
-            ];
-        }
-
-        // Hanya satu sesi.
+        // Ada presensi (satu sesi atau pagi + sore lengkap).
         if ($adaPagi || $adaSore) {
-            // Kalau HRD sudah menyetujui.
-            if (
-                $sesiHari->contains(
-                    'status_persetujuan',
-                    'disetujui'
-                )
-            ) {
+            // Hari dihitung hadir hanya setelah HRD menyetujui
+            // (status sesi ATAU laporan harian yang di-ACC admin).
+            // Presensi lengkap pun tetap "!" sampai admin menekan ACC.
+            if ($this->sudahDisetujui($sesiHari)) {
                 return [
                     'kode' => 'hadir',
                     'tanda' => '✓',
@@ -262,10 +251,11 @@ class AttendanceController extends Controller
                     0
                 );
 
-            // Hari ini masih berjalan.
+            // Hari ini masih berjalan dan baru satu sesi → masih progres.
             if (
                 $tanggal->isToday()
                 && now()->lt($jamSoreTutup)
+                && !($adaPagi && $adaSore)
             ) {
                 return [
                     'kode' => 'progres',
@@ -306,6 +296,24 @@ class AttendanceController extends Controller
             'kode' => 'alpha',
             'tanda' => '✕',
         ];
+    }
+
+    // =========================================================
+    // BANTUAN: SUDAH DISETUJUI HRD?
+    // =========================================================
+
+    /**
+     * Admin menyetujui lewat status sesi (status_persetujuan = 'disetujui')
+     * atau lewat laporan harian (laporan_harian.status_review = 'disetujui').
+     * Presensi baru berstatus 'menunggu' sampai admin menekan ACC, jadi
+     * keduanya dicek. Data lama berstatus 'auto' tidak dihitung disetujui.
+     */
+    private function sudahDisetujui(Collection $sesiHari): bool
+    {
+        return $sesiHari->contains('status_persetujuan', 'disetujui')
+            || $sesiHari->contains(
+                fn ($sesi) => $sesi->laporanHarian?->status_review === 'disetujui'
+            );
     }
 
     // =========================================================
@@ -553,7 +561,6 @@ class AttendanceController extends Controller
                     $data,
                     $sekarang,
                     $terdekat,
-                    $dalamJendela,
                     &$pathFoto
                 ) {
                     // Foto hanya wajib untuk presensi pagi.
@@ -610,10 +617,10 @@ class AttendanceController extends Controller
 
                         'status' => 'hadir',
 
-                        'status_persetujuan' =>
-                            $dalamJendela
-                                ? 'auto'
-                                : 'menunggu',
+                        // Presensi baru SELALU menunggu ACC dari admin/HRD.
+                        // Berubah menjadi 'disetujui' hanya saat admin menekan
+                        // tombol ACC. Jangan diisi 'auto' di sini.
+                        'status_persetujuan' => 'menunggu',
                     ]);
                 }
             );

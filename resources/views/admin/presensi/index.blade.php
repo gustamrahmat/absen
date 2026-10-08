@@ -7,6 +7,15 @@
     'alpha' => 'bg-red-100 text-red-600',
   ];
   $inp = 'border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-200';
+
+  // Warna persentase kehadiran: >=85 hijau, 70-84 kuning, <70 merah
+  $warnaTeks = fn($p) => $p === null ? 'text-slate-400' : ($p >= 85 ? 'text-green-600' : ($p >= 70 ? 'text-amber-600' : 'text-red-600'));
+  $warnaBar  = fn($p) => $p >= 85 ? 'bg-green-500' : ($p >= 70 ? 'bg-amber-400' : 'bg-red-500');
+  $seg = [
+    ['hadir', 'Hadir', 'bg-green-500'], ['izin', 'Izin', 'bg-amber-400'], ['sakit', 'Sakit', 'bg-blue-500'],
+    ['cuti', 'Cuti', 'bg-teal-400'],    ['alpha', 'Alpha', 'bg-red-500'], ['tanpa_data', 'Tanpa data', 'bg-slate-300'],
+  ];
+  $tot = $rekap['total'];
 @endphp
 
 <div x-data="presensi()" x-init="@if($qrBaru) open('qr', @js($qrBaru)) @endif" @keydown.escape.window="modal = null">
@@ -21,10 +30,20 @@
       <a href="{{ route('admin.peserta.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg px-4 py-2.5">+ Tambah Anak Magang</a>
       <button type="button" @click="modal = 'import'" class="border border-slate-300 hover:bg-slate-50 text-xs font-semibold rounded-lg px-4 py-2.5">⇧ Import Excel</button>
       <button type="button" @click="modal = 'export'" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg px-4 py-2.5">⇩ Export Excel</button>
-      <button type="button" @click="modal = 'accAll'" @disabled($stat['acc'] === 0) class="bg-gradient-to-r from-purple-600 to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg px-4 py-2.5">✓ ACC Semua ({{ $stat['acc'] }})
-</button>    
+      <button type="button" @click="modal = 'accAll'" @disabled($stat['acc'] === 0) class="bg-gradient-to-r from-purple-600 to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg px-4 py-2.5">✓ ACC Semua ({{ $stat['acc'] }})</button>
     </div>
   </div>
+
+  {{-- Pesan sukses / error --}}
+  @if(session('success'))
+    <div class="mt-4 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs px-4 py-3">{{ session('success') }}</div>
+  @endif
+  @if(session('error'))
+    <div class="mt-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-3">{{ session('error') }}</div>
+  @endif
+  @if($errors->any())
+    <div class="mt-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-3">{{ $errors->first() }}</div>
+  @endif
 
   @if(!empty(session('import_errors')))
     <div class="mt-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-4 py-3">
@@ -62,12 +81,45 @@
     </select>
   </form>
 
+  {{-- Ringkasan kehadiran bulanan (mengikuti filter nama & departemen) --}}
+  <div class="mt-4 border border-slate-200 rounded-xl px-5 py-4 shadow-sm">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <div class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Kehadiran {{ $rekap['label'] }}</div>
+        <div class="text-[11px] text-slate-400 mt-0.5">
+          {{ request('departemen') ?: 'Semua Departemen' }}
+          @if(request('q')) · pencarian "{{ request('q') }}" @endif
+          · {{ $rekap['jumlah_peserta'] }} peserta
+          @if($rekap['sampai_label']) · {{ $rekap['hari_kerja'] }} hari kerja sampai {{ $rekap['sampai_label'] }} @endif
+        </div>
+      </div>
+      <div class="text-3xl font-extrabold leading-none {{ $warnaTeks($tot['persen']) }}">{{ $tot['persen'] === null ? '—' : $tot['persen'] . '%' }}</div>
+    </div>
+
+    <div class="flex h-2.5 rounded-full overflow-hidden bg-slate-100 mt-3">
+      @if($tot['hari_kerja'] > 0)
+        @foreach($seg as [$k, $lbl, $warna])
+          @if($tot[$k] > 0)
+            <div class="{{ $warna }}" @style(['width: ' . round($tot[$k] / $tot['hari_kerja'] * 100, 2) . '%']) title="{{ $lbl }}: {{ $tot[$k] }} hari"></div>
+          @endif
+        @endforeach
+      @endif
+    </div>
+
+    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] text-slate-500">
+      @foreach($seg as [$k, $lbl, $warna])
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block w-2 h-2 rounded-full {{ $warna }}"></i>{{ $lbl }} <b class="text-slate-700">{{ $tot[$k] }}</b></span>
+      @endforeach
+    </div>
+    <p class="text-[10px] text-slate-400 mt-2">Persentase = hari hadir ÷ hari kerja (Senin–Jumat), dihitung sejak tanggal mulai magang peserta. Angka di legenda dalam satuan hari.</p>
+  </div>
+
   {{-- Tabel --}}
   <div class="mt-4 border border-slate-200 rounded-xl overflow-hidden shadow-sm overflow-x-auto">
     <table class="w-full text-xs">
       <thead class="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
         <tr>
-          @foreach(['Peserta','Departemen','Jam Masuk','Jam Keluar','Catatan Harian','Status','Aksi'] as $h)
+          @foreach(['Peserta','Departemen','Jam Masuk','Jam Keluar','Catatan Harian','Status','Kehadiran Bulan Ini','Aksi'] as $h)
             <th class="text-left font-semibold px-4 py-3">{{ $h }}</th>
           @endforeach
         </tr>
@@ -108,6 +160,18 @@
                 <span class="rounded-full bg-slate-100 text-slate-400 text-[10px] px-2.5 py-1">● —</span>
               @endif
             </td>
+            <td class="px-4 py-3 min-w-[140px]">
+              @php $b = $row['bulan']; @endphp
+              @if($b && $b['persen'] !== null)
+                <div class="flex items-center gap-2" title="Hadir {{ $b['hadir'] }} · Izin {{ $b['izin'] }} · Sakit {{ $b['sakit'] }} · Cuti {{ $b['cuti'] }} · Alpha {{ $b['alpha'] }} · Tanpa data {{ $b['tanpa_data'] }}">
+                  <div class="h-1.5 w-20 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full {{ $warnaBar($b['persen']) }}" @style(['width: ' . $b['persen'] . '%'])></div></div>
+                  <span class="text-[11px] font-semibold {{ $warnaTeks($b['persen']) }}">{{ $b['persen'] }}%</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">{{ $b['hadir'] }}/{{ $b['hari_kerja'] }} hari</div>
+              @else
+                <span class="text-slate-400">—</span>
+              @endif
+            </td>
             <td class="px-4 py-3">
               <div class="flex gap-1.5">
                 <button type="button" @click="open('status', @js($row))" class="border border-slate-300 rounded-md px-2.5 py-1 text-[10px] font-semibold leading-tight text-center hover:bg-slate-50">Ubah<br>Status</button>
@@ -117,7 +181,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="7" class="text-center text-slate-400 py-10">Tidak ada peserta ditemukan.</td></tr>
+          <tr><td colspan="8" class="text-center text-slate-400 py-10">Tidak ada peserta ditemukan.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -131,7 +195,8 @@
   <div x-show="modal === 'status'" x-cloak class="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4" @click.self="modal = null">
     <form method="POST" action="{{ route('admin.presensi.status') }}" class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5">
       @csrf
-      <input type="hidden" name="peserta_id" :value="r.peserta_id">
+      {{-- FIX: nama field harus user_id (sesuai validasi controller), bukan peserta_id --}}
+      <input type="hidden" name="user_id" :value="r.user_id">
       <input type="hidden" name="tanggal" :value="r.tanggal">
       <input type="hidden" name="status" :value="status">
       <div class="flex justify-between items-start">
@@ -212,7 +277,7 @@
     </div>
   </div>
 
-    {{-- ===== POPUP: ACC Semua ===== --}}
+  {{-- ===== POPUP: ACC Semua ===== --}}
   <div x-show="modal === 'accAll'" x-cloak class="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4" @click.self="modal = null">
     <form method="POST" action="{{ route('admin.presensi.approve-all') }}" class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5">
       @csrf

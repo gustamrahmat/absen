@@ -43,7 +43,9 @@ class ReportController extends Controller
         $laporan = LaporanHarian::create([
             'sesi_presensi_id' => $sesiPresensi->id,
             'laporan' => $data['laporan'],
-            'status_review' => 'disetujui', // kebijakan sekarang: laporan auto-ACC
+            // Laporan baru menunggu ACC admin. Berubah menjadi 'disetujui'
+            // hanya saat admin menekan tombol ACC.
+            'status_review' => 'menunggu',
         ]);
 
         return response()->json(['ok' => true, 'laporanId' => $laporan->id]);
