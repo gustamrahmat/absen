@@ -2,47 +2,51 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'nomor_induk',
-        'peran',
-        'status_akun',
-        'departemen_id',
-        'uuid_kartu',
-        'foto_profil_url',
-        'asal_sekolah',
-        'jurusan',
+        'name', 'email', 'password', 'nomor_induk', 'peran', 'status_akun',
+        'departemen_id', 'uuid_kartu', 'foto_profil_url', 'asal_sekolah', 'jurusan',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    // Sintaks method casts() ini untuk Laravel 11+. Kalau project rekanmu Laravel 10 ke bawah,
-    // ganti jadi property: protected $casts = ['email_verified_at' => 'datetime', 'password' => 'hashed'];
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed', // Laravel otomatis Hash::make() saat kolom ini diisi
+            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Setiap user baru (registrasi, import Excel, seeder, dll) otomatis
+     * mendapat uuid_kartu yang dipakai sebagai isi QR.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->uuid_kartu)) {
+                $user->uuid_kartu = (string) Str::uuid();
+            }
+        });
     }
 
     public function departemen()
     {
         return $this->belongsTo(Departemen::class);
+    }
+
+    public function dataMagang()
+    {
+        return $this->hasOne(DataMagang::class);
     }
 
     public function sesiPresensi()

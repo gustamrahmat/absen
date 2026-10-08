@@ -13,9 +13,4 @@ class Departemen extends Model
     {
         return $this->hasMany(User::class);
     }
-
-    public function dataMagang()
-    {
-        return $this->hasMany(DataMagang::class);
-    }
 }
