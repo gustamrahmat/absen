@@ -1,0 +1,152 @@
+[2026-10-05 11:15:53] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at perbaruiSesi (http://127.0.0.1:8000/presensi/scan:1585:9)
+    at http://127.0.0.1:8000/presensi/scan:1714:1 {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:15:52.940Z"} 
+[2026-10-05 11:15:53] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at perbaruiSesi (http://127.0.0.1:8000/presensi/scan:1585:9)
+    at http://127.0.0.1:8000/presensi/scan:1714:1 {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:15:52.940Z"} 
+[2026-10-05 11:15:56] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1045:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:15:56.429Z"} 
+[2026-10-05 11:15:56] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1045:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:15:56.429Z"} 
+[2026-10-05 11:16:02] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1045:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:01.957Z"} 
+[2026-10-05 11:16:02] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1045:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:01.957Z"} 
+[2026-10-05 11:16:03] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1016:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:02.921Z"} 
+[2026-10-05 11:16:03] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1016:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:02.921Z"} 
+[2026-10-05 11:16:04] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1016:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:03.984Z"} 
+[2026-10-05 11:16:04] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1016:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:03.984Z"} 
+[2026-10-05 11:16:06] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1016:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:06.217Z"} 
+[2026-10-05 11:16:06] local.ERROR: Uncaught ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined http://127.0.0.1:8000/presensi/scan 1507 9 ReferenceError WAKTU_BROWSER_SAAT_LOAD is not defined ReferenceError: WAKTU_BROWSER_SAAT_LOAD is not defined
+    at waktuSekarang (http://127.0.0.1:8000/presensi/scan:1507:9)
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1518:9)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1531:9)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1738:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1016:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:16:06.217Z"} 
+[2026-10-05 11:37:44] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at perbaruiSesi (http://127.0.0.1:8000/presensi/scan:1634:9)
+    at http://127.0.0.1:8000/presensi/scan:1763:1 {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:37:44.059Z"} 
+[2026-10-05 11:37:44] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at perbaruiSesi (http://127.0.0.1:8000/presensi/scan:1634:9)
+    at http://127.0.0.1:8000/presensi/scan:1763:1 {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:37:44.059Z"} 
+[2026-10-05 11:37:45] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:37:45.256Z"} 
+[2026-10-05 11:37:45] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36","timestamp":"2026-10-05T04:37:45.256Z"} 
+[2026-10-05 12:02:11] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at perbaruiSesi (http://127.0.0.1:8000/presensi/scan:1634:9)
+    at http://127.0.0.1:8000/presensi/scan:1763:1 {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:11.107Z"} 
+[2026-10-05 12:02:11] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at perbaruiSesi (http://127.0.0.1:8000/presensi/scan:1634:9)
+    at http://127.0.0.1:8000/presensi/scan:1763:1 {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:11.108Z"} 
+[2026-10-05 12:02:12] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:12.432Z"} 
+[2026-10-05 12:02:12] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:12.432Z"} 
+[2026-10-05 12:02:25] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:25.348Z"} 
+[2026-10-05 12:02:25] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:25.349Z"} 
+[2026-10-05 12:02:26] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:26.032Z"} 
+[2026-10-05 12:02:26] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:26.032Z"} 
+[2026-10-05 12:02:26] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:26.248Z"} 
+[2026-10-05 12:02:26] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:02:26.249Z"} 
+[2026-10-05 12:03:07] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:03:06.836Z"} 
+[2026-10-05 12:03:07] local.ERROR: Uncaught ReferenceError: waktuSekarang is not defined http://127.0.0.1:8000/presensi/scan 1568 15 ReferenceError waktuSekarang is not defined ReferenceError: waktuSekarang is not defined
+    at jamSekarang (http://127.0.0.1:8000/presensi/scan:1568:15)
+    at dalamJam (http://127.0.0.1:8000/presensi/scan:1580:17)
+    at pilihSesi (http://127.0.0.1:8000/presensi/scan:1787:10)
+    at HTMLButtonElement.onclick (http://127.0.0.1:8000/presensi/scan:1081:14) {"url":"http://127.0.0.1:8000/presensi/scan","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36","timestamp":"2026-10-05T05:03:06.836Z"} 
